@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
@@ -29,6 +30,8 @@ import com.teioh08.djcollab.UI.Session.Adapters.SessionSongListAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyCallback;
@@ -116,6 +119,22 @@ public class SessionPresenterImpl implements SessionPresenter {
 
         search("Hello, I love you - slight return");
 //        getPlayList("garth");
+
+        if(!mIsPartyHost){
+            Timer timer = new Timer();
+            TimerTask task = new TimerTask(){
+
+                @Override
+                public void run() {
+                    new MyTask().execute();
+                }
+
+            };
+            long whenToStart = 20*1000L; // 20 seconds
+            long howOften = 20*1000L; // 20 seconds
+            timer.scheduleAtFixedRate(task, whenToStart, howOften);
+        }
+
     }
 
     @Override
@@ -289,7 +308,7 @@ public class SessionPresenterImpl implements SessionPresenter {
     }
 
     private void logMessage(String msg) {
-        Toast.makeText(mSessionActivityMap.getContext(), msg, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mSessionActivityMap.getContext(), msg, Toast.LENGTH_SHORT).show();
         Log.d(TAG, msg);
     }
 
@@ -314,9 +333,7 @@ public class SessionPresenterImpl implements SessionPresenter {
         mSessionActivityMap.setupSearchRecyclerView(mSongListAdapter, mLayoutManager, mScrollListener);
     }
 
-    private void temp() {
-    }
-
+    public void temp(){}
 
     private void setupPlaylistView() {
         mPlayListAdapter = new SessionSongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> SessionPresenterImpl.this.temp(), true);
@@ -324,21 +341,7 @@ public class SessionPresenterImpl implements SessionPresenter {
         mPlaySearchCompleteListener = new PlaylistPager.PlaylistCompleteListener() {
             @Override
             public void onComplete(Track item) {
-                RestClient.get().addTrackToParty(mParty.getId(), item.id, new retrofit.Callback<Void>() {
-                    @Override
-                    public void success(Void aVoid, Response response) {
-                        mPlayListAdapter.addSingleData(item);
-                        mPlayerInt.play(item.uri);  //todo remove and add when socket tells you to
-                        //succesfully add song to host list
-                    }
-
-                    @Override
-                    public void failure(RetrofitError error) {
-                        String x = error.getResponse().toString();
-                        logError(error.toString());
-                        //fail to add song ot  host list
-                    }
-                });
+                addTrackParty(item);
             }
 
             @Override
@@ -351,6 +354,12 @@ public class SessionPresenterImpl implements SessionPresenter {
         mPlaylistScrollListener = new PlayListScrollListener(mLayoutManager2, mPlaylistPager, mPlaySearchCompleteListener);
         mSessionActivityMap.setupPlaylistRecyclerView(mPlayListAdapter, mLayoutManager2, mPlaylistScrollListener);
     }
+
+
+
+
+
+
 
     @Override
     public void removeTrack(int pos) {
@@ -368,6 +377,10 @@ public class SessionPresenterImpl implements SessionPresenter {
             });
         }
     }
+
+
+
+
 
     @Override
     public void refreshPlaylist(){
@@ -403,5 +416,42 @@ public class SessionPresenterImpl implements SessionPresenter {
             });
         }
     }
+
+    private void addTrackParty(Track item){
+        RestClient.get().addTrackToParty(mParty.getId(), item.id, new retrofit.Callback<Void>() {
+            @Override
+            public void success(Void aVoid, Response response) {
+                mPlayListAdapter.addSingleData(item);
+                mPlayerInt.play(item.uri);  //todo remove and add when socket tells you to
+                //succesfully add song to host list
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                String x = error.getResponse().toString();
+//                logError(error.toString());
+                //fail to add song ot  host list
+            }
+        });
+    }
+
+
+    class MyTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            // get data from web service
+            // insert data in database
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            // refresh UI
+            refreshPlaylist();
+        }
+    }
+
+
+
 }
 
