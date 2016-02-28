@@ -51,8 +51,7 @@ public class SessionPresenterImpl implements SessionPresenter {
     private PlaylistPager.PlaylistCompleteListener mPlaySearchCompleteListener;
     private PlayListScrollListener mPlaylistScrollListener;
 
-
-
+    private boolean mIsPartyHost;
 
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -79,18 +78,17 @@ public class SessionPresenterImpl implements SessionPresenter {
         if (accessToken != null) spotifyApi.setAccessToken(accessToken);
         else logError("No valid access token");
 
-        SpotifyService service =  spotifyApi.getService();
+        SpotifyService service = spotifyApi.getService();
         mSearchPager = new SearchPager(service);
         mPlaylistPager = new PlaylistPager(service);
 
         mSessionActivityMap.getContext().bindService(PreviewService.getIntent(mSessionActivityMap.getContext()), mServiceConnection, Activity.BIND_AUTO_CREATE);
 
 
-
         setupSearchView();
         setupPlaylistView();
 
-        search("Garth");
+        search("Hello, I love you - slight return");
         getPlayList("garth");
     }
 
@@ -119,18 +117,18 @@ public class SessionPresenterImpl implements SessionPresenter {
     //TODO
     //alter mPlaylistPager to get track info from server and update list
     public void getPlayList(@Nullable String searchQuery) {
-            mSearchCompleteListener = new SearchPager.CompleteListener() {
-                @Override
-                public void onComplete(List<Track> items) {
-                    mSessionActivityMap.addPlaylistData(items);
-                }
+        mSearchCompleteListener = new SearchPager.CompleteListener() {
+            @Override
+            public void onComplete(List<Track> items) {
+                mSessionActivityMap.addPlaylistData(items);
+            }
 
-                @Override
-                public void onError(Throwable error) {
-                    logError(error.getMessage());
-                }
-            };
-            mPlaylistPager.getFirstPageSearch(searchQuery, PAGE_SIZE, mPlaySearchCompleteListener, new ArrayList<String>());
+            @Override
+            public void onError(Throwable error) {
+                logError(error.getMessage());
+            }
+        };
+        mPlaylistPager.getFirstPageSearch(searchQuery, PAGE_SIZE, mPlaySearchCompleteListener, new ArrayList<String>());
     }
 
     @Override
@@ -161,27 +159,36 @@ public class SessionPresenterImpl implements SessionPresenter {
 
     @Override
     public void selectTrack(Track item) {
-//        String previewUrl = item.preview_url;
-        String previewUrl = item.uri;
+        String previewUrl = item.preview_url;
+        String trackUri = item.uri;
         String id = item.id;
 
-        if(previewUrl == null) {
-            logMessage("Track doesn't have a preview");
-            return;
+        mIsPartyHost = true;
+        if (mIsPartyHost) {
+            mPlaylistPager.addSong(id, mPlaySearchCompleteListener);
+            if (!mSessionActivityMap.isPlayerInitialized()) return;
+            String currentTrackUrl = mSessionActivityMap.getCurrentTrack();
+
+            if (currentTrackUrl == null || !currentTrackUrl.equals(trackUri)) mSessionActivityMap.play(trackUri);
+//            else if (mSessionActivityMap.isPlaying()) mSessionActivityMap.pause();
+//            else mSessionActivityMap.resume();
+
+        } else {
+            if (previewUrl == null) {
+                logMessage("Track doesn't have a preview");
+                return;
+            }
+
+            if (mPlayerInt == null) return;
+
+            String currentTrackUrl = mPlayerInt.getCurrentTrack();
+            mPlaylistPager.addSong(id, mPlaySearchCompleteListener);
+
+            if (currentTrackUrl == null || !currentTrackUrl.equals(previewUrl))
+                mPlayerInt.play(previewUrl);
+            else if (mPlayerInt.isPlaying()) mPlayerInt.pause();
+            else mPlayerInt.resume();
         }
-
-//        if(mPlayerInt == null) return;
-//        String currentTrackUrl = mPlayerInt.getCurrentTrack();
-//
-
-        mPlaylistPager.addSong(id, mPlaySearchCompleteListener);
-
-        if(!mSessionActivityMap.isPlayerInitialized()) return;
-        String currentTrackUrl = mSessionActivityMap.getCurrentTrack();
-
-        if (currentTrackUrl == null || !currentTrackUrl.equals(previewUrl)) mSessionActivityMap.play(previewUrl);
-        else if (mSessionActivityMap.isPlaying()) mSessionActivityMap.pause();
-        else mSessionActivityMap.resume();
     }
 
     @Override
@@ -209,13 +216,11 @@ public class SessionPresenterImpl implements SessionPresenter {
     public void setupDrawerLayoutListener(Toolbar mToolBar, DrawerLayout mDrawerLayout) {
         mDrawerToggle = new ActionBarDrawerToggle(((Activity) mSessionActivityMap.getContext()), mDrawerLayout,
                 mToolBar, R.string.app_name, R.string.app_name) {
-            /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
                 mSessionActivityMap.onDrawerClose();
             }
 
-            /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 mSessionActivityMap.onDrawerOpen();
@@ -248,7 +253,7 @@ public class SessionPresenterImpl implements SessionPresenter {
         Log.d(TAG, msg);
     }
 
-    private void setupSearchView(){
+    private void setupSearchView() {
         mSessionActivityMap.setupSearchview();
         mSongListAdapter = new SessionSongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> selectTrack(item), false);
 
@@ -270,8 +275,12 @@ public class SessionPresenterImpl implements SessionPresenter {
 
     }
 
-    private void setupPlaylistView(){
-        mPlayListAdapter = new SessionSongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> selectTrack(item), true);
+    private void temp() {
+    }
+
+
+    private void setupPlaylistView() {
+        mPlayListAdapter = new SessionSongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> temp(), true);
 
         mPlaySearchCompleteListener = new PlaylistPager.PlaylistCompleteListener() {
             @Override
@@ -288,6 +297,11 @@ public class SessionPresenterImpl implements SessionPresenter {
         LinearLayoutManager mLayoutManager2 = new LinearLayoutManager(mSessionActivityMap.getContext());
         mPlaylistScrollListener = new PlayListScrollListener(mLayoutManager2, mPlaylistPager, mPlaySearchCompleteListener);
         mSessionActivityMap.setupPlaylistRecyclerView(mPlayListAdapter, mLayoutManager2, mPlaylistScrollListener);
+    }
+
+    @Override
+    public void removeTrack(int pos){
+        mPlayListAdapter.removeSingleData(pos);
     }
 }
 

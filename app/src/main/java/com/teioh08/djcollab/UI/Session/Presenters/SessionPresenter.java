@@ -45,4 +45,6 @@ public interface SessionPresenter {
 
     boolean onOptionsSelected(MenuItem item);
 
+    void removeTrack(int pos);
+
 }

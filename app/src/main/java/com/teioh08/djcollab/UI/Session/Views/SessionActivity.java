@@ -2,7 +2,6 @@ package com.teioh08.djcollab.UI.Session.Views;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -17,13 +16,11 @@ import android.view.View;
 import android.widget.SearchView;
 import android.widget.TextView;
 
-import com.spotify.sdk.android.authentication.AuthenticationClient;
-import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.Player;
+import com.spotify.sdk.android.player.PlayerNotificationCallback;
+import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.Spotify;
-import com.teioh08.djcollab.Player.PlayerInt;
-import com.teioh08.djcollab.UI.Main.MainActivity;
 import com.teioh08.djcollab.UI.Session.Views.Maps.SessionActivityMap;
 import com.teioh08.djcollab.Utils.CredentialsHandler;
 import com.teioh08.djcollab.R;
@@ -33,7 +30,7 @@ import com.teioh08.djcollab.UI.Session.Adapters.SessionSongListAdapter;
 import com.teioh08.djcollab.UI.Session.Presenters.SessionPresenter;
 import com.teioh08.djcollab.UI.Session.Presenters.SessionPresenterImpl;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +38,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import kaaes.spotify.webapi.android.models.Track;
 
-public class SessionActivity extends AppCompatActivity implements SessionActivityMap {
+public class SessionActivity extends AppCompatActivity implements SessionActivityMap, PlayerNotificationCallback {
     public final static String TAG = SessionActivity.class.getSimpleName();
     private SessionPresenter mSessionPresenter;
 
@@ -56,6 +53,7 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
     private Player mMediaPlayer;
     private boolean mIsPlaying;
     private String mCurrentTrack;
+    private List<String> mCurrList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,10 +81,7 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
             @Override
             public void onInitialized(Player player) {
                 mMediaPlayer = player;
-//                mPlayer.addConnectionStateCallback(SessionActivity.this);
-//                mPlayer.addPlayerNotificationCallback(SessionActivity.this);
-//                mIsPlaying = true;
-//                mMediaPlayer.play("spotify:track:2TpxZ7JUBn3uw46aR7qd6V");
+                mMediaPlayer.addPlayerNotificationCallback(SessionActivity.this);
             }
 
             @Override
@@ -222,13 +217,30 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
     @Override
     public void play(String url) {
         if (mMediaPlayer != null) {
-//            mMediaPlayer.shutdown();
-            mMediaPlayer.pause();
-            mCurrentTrack = url;
-            mIsPlaying = true;
-            mMediaPlayer.play(url);
+            if(mCurrList == null) mCurrList = new ArrayList<>();
+            mCurrList.add(url);
+            if(!url.equals(mCurrentTrack))
+                mMediaPlayer.queue(url);
         }
 
+
+    }
+
+    @Override
+    public void playlist(List<String> url) {
+        if (mMediaPlayer != null) {
+            if(mCurrList == null) {
+                mCurrList = new ArrayList<>(url);
+            }else{
+                mCurrList.addAll(url);
+            }
+
+            mCurrList = new ArrayList<>(url);
+            mCurrentTrack = mCurrList.get(0);
+            for(String s : url){
+                mMediaPlayer.queue(s);
+            }
+        }
     }
 
     @Override
@@ -236,7 +248,6 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
         Log.d(TAG, "Pause");
         if (mMediaPlayer != null) {
             mMediaPlayer.pause();
-            mIsPlaying = false;
         }
     }
 
@@ -255,7 +266,6 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
         Log.d(TAG, "Resume");
         if (mMediaPlayer != null) {
             mMediaPlayer.resume();
-            mIsPlaying = true;
         }
     }
 
@@ -273,5 +283,27 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
     @Nullable
     public String getCurrentTrack() {
         return mCurrentTrack;
+    }
+
+    @Override
+    public void onPlaybackEvent(EventType type, PlayerState state) {
+        Log.e(TAG, type.toString());
+        if(type == EventType.TRACK_START){
+            mIsPlaying = true;
+        }else if(type == EventType.TRACK_END){
+            mIsPlaying = false;
+        }
+        if(type == EventType.TRACK_CHANGED){
+            mCurrentTrack = state.trackUri;
+            if(mCurrList.size() > 0) {
+                mSessionPresenter.removeTrack(0);
+                mCurrList.remove(0);
+            }
+        }
+    }
+
+    @Override
+    public void onPlaybackError(ErrorType type, String s) {
+        Log.e(TAG, type + " : " + s);
     }
 }

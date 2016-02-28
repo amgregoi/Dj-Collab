@@ -73,6 +73,13 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         notifyDataSetChanged();
     }
 
+    public void removeSingleData(int pos){
+        if(mItems.size() > 0) {
+            mItems.remove(pos);
+            notifyDataSetChanged();
+        }
+    }
+
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

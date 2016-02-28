@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.List;
 
 public class PreviewPlayer implements PlayerInt, MediaPlayer.OnCompletionListener {
 
@@ -46,6 +47,11 @@ public class PreviewPlayer implements PlayerInt, MediaPlayer.OnCompletionListene
         } catch (IOException e) {
             Log.e(TAG, "Could not play: " + url, e);
         }
+    }
+
+    @Override
+    public void playlist(List<String> url) {
+
     }
 
     @Override
