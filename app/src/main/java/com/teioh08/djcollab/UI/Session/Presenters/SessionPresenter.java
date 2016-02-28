@@ -6,6 +6,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import com.teioh08.djcollab.Party;
+
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Track;
@@ -13,7 +15,7 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public interface SessionPresenter {
 
-    void init(String token);
+    void init(String token, Party p, boolean host);
 
     String getCurrentQuery();
 

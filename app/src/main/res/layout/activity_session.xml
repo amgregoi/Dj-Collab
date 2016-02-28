@@ -13,14 +13,17 @@
 		<LinearLayout
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
-			android:orientation="vertical">
+			android:orientation="vertical"
+			android:background="@color/black">
 
 			<include layout="@layout/toolbar"/>
 
 			<android.support.v7.widget.RecyclerView
+				android:layout_marginTop="5dp"
 				android:id="@+id/queuedSongs"
 				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"/>
+				android:layout_height="wrap_content"
+				/>
 
 		</LinearLayout>
 
@@ -34,7 +37,7 @@
 			android:choiceMode="singleChoice"
 			android:divider="@android:color/transparent"
 			android:dividerHeight="0dp"
-		    android:backgroundTint="@color/colorPrimaryDark"
+		    android:backgroundTint="@color/black"
 			/>
 
 	</android.support.v4.widget.DrawerLayout>

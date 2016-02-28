@@ -12,22 +12,26 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
 
+import com.teioh08.djcollab.DJCRest.RestClient;
+import com.teioh08.djcollab.Party;
 import com.teioh08.djcollab.UI.Main.Adapters.SessionListAdapter;
 import com.teioh08.djcollab.R;
 import com.teioh08.djcollab.UI.Session.Views.SessionActivity;
-import com.teioh08.djcollab.Utils.CredentialsHandler;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnItemClick;
+import retrofit.Callback;
+import retrofit.RetrofitError;
 
 public class JoinFragment extends Fragment {
     public static final String TAG  = JoinFragment.class.getSimpleName();
 
-    private SessionListAdapter adapter;
-    private ArrayList<String> things;
+    private SessionListAdapter mAdapter;
+    private ArrayList<Party> mPartyList;
 
     @Bind(R.id.sessionListView) ListView mSessionList;
     @Bind(R.id.searchView) SearchView mSearchView;
@@ -37,16 +41,27 @@ public class JoinFragment extends Fragment {
         View joinView = inflater.inflate(R.layout.fragment_join_session, container, false);
         ButterKnife.bind(this, joinView);
 
-        things = new ArrayList<>();
-        things.add("HARHAR");
-        things.add("I'm a lumber");
-        things.add("jack");
-        adapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, things);
+        RestClient.get().getHostList(new Callback<List<Party>>() {
+            @Override
+            public void success(List<Party> call, retrofit.client.Response response) {
+                if(call != null) mPartyList = new ArrayList<Party>(call);
+                else mPartyList = new ArrayList<Party>();
+                mAdapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, mPartyList);
+                mSessionList.setAdapter(mAdapter);
+            }
 
-        mSessionList.setAdapter(adapter);
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(TAG, "Failed to retrive party list : " + error.getMessage());
+                mPartyList = new ArrayList<Party>();
+                mAdapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, mPartyList);
+                mSessionList.setAdapter(mAdapter);
+
+            }
+
+        });
 
         mSearchView.setVisibility(View.GONE);
-
         return joinView;
     }
 
@@ -83,6 +98,8 @@ public class JoinFragment extends Fragment {
     void onItemClick(AdapterView<?> adapter, View view, int pos) {
         Intent intent = new Intent(getContext(), SessionActivity.class);
         //add arguments to intent
+        intent.putExtra("party", mPartyList.get(pos));
+        intent.putExtra("isHost", false);
         startActivity(intent);
 
     }

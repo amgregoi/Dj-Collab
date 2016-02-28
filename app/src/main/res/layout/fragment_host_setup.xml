@@ -1,44 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="@color/white"
-              android:orientation="vertical">
+              android:background="@color/black"
+              >
 
 	<include layout="@layout/toolbar"/>
 
-	<EditText
+	<RelativeLayout
+		android:layout_centerVertical="true"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:hint="user stuff"
-		/>
+		>
+
+		<EditText
+			android:id="@+id/partyName"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:hint="Party Name"
+			android:textCursorDrawable="@drawable/caret"
+			android:textAlignment="center"
+			android:background="@drawable/test"
+		    android:textColor="@color/white"
+		    android:textColorHint="@color/grey"
+			/>
 
 
-	<EditText
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:hint="stuff"
-		/>
-
-
-	<EditText
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:hint="stuff"
-		/>
-
-
-	<EditText
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:hint="stuff"
-		/>
-
-	<Button
-		android:id="@+id/createButton"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:text="Create Session"
-		/>
-
-</LinearLayout>
+		<Button
+			android:layout_below="@id/partyName"
+			android:id="@+id/createButton"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Create Session"
+			/>
+	</RelativeLayout>
+</RelativeLayout>

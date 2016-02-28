@@ -1,6 +1,9 @@
 package com.teioh08.djcollab.Utils;
 
 
+import android.util.Log;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +11,8 @@ import java.util.Map;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Pager;
+import kaaes.spotify.webapi.android.models.SavedTrack;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.client.Response;
@@ -36,6 +41,12 @@ public class SearchPager {
         getDataSearch(query, 0, pageSize, listener);
     }
 
+    public void getFirstPageSongList(int pageSize, CompleteListener listener) {
+        mCurrentOffset = 0;
+        mPageSize = pageSize;
+        getDataSongList(0, pageSize, listener);
+    }
+
     public void getNextPageSearch(CompleteListener listener) {
         mCurrentOffset += mPageSize;
         getDataSearch(mCurrentQuery, mCurrentOffset, mPageSize, listener);
@@ -54,6 +65,30 @@ public class SearchPager {
 
             @Override
             public void failure(SpotifyError error) {
+                listener.onError(error);
+            }
+        });
+    }
+
+
+    private void getDataSongList(int offset, final int limit, final CompleteListener listener) {
+        Map<String, Object> options = new HashMap<>();
+        options.put(SpotifyService.OFFSET, offset);
+        options.put(SpotifyService.LIMIT, limit);
+
+        mSpotifyApi.getMySavedTracks(new SpotifyCallback<Pager<SavedTrack>>() {
+            @Override
+            public void success(Pager<SavedTrack> pager, Response response) {
+                List<Track> newList = new ArrayList<>();
+                for(SavedTrack s : pager.items) {
+                    newList.add(s.track);
+                }
+                listener.onComplete(newList);
+            }
+
+            @Override
+            public void failure(SpotifyError error) {
+                Log.e("RAWR", "nope");
                 listener.onError(error);
             }
         });

@@ -3,6 +3,7 @@ package com.teioh08.djcollab.UI.Session.Views;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
@@ -16,11 +17,18 @@ import android.view.View;
 import android.widget.SearchView;
 import android.widget.TextView;
 
+import com.neovisionaries.ws.client.WebSocket;
+import com.neovisionaries.ws.client.WebSocketAdapter;
+import com.neovisionaries.ws.client.WebSocketException;
+import com.neovisionaries.ws.client.WebSocketFactory;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.Spotify;
+import com.teioh08.djcollab.DJCRest.RestClient;
+import com.teioh08.djcollab.Party;
+import com.teioh08.djcollab.UI.Main.MainActivity;
 import com.teioh08.djcollab.UI.Session.Views.Maps.SessionActivityMap;
 import com.teioh08.djcollab.Utils.CredentialsHandler;
 import com.teioh08.djcollab.R;
@@ -37,6 +45,12 @@ import java.util.concurrent.TimeUnit;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import kaaes.spotify.webapi.android.models.Track;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class SessionActivity extends AppCompatActivity implements SessionActivityMap, PlayerNotificationCallback {
     public final static String TAG = SessionActivity.class.getSimpleName();
@@ -53,7 +67,9 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
     private Player mMediaPlayer;
     private boolean mIsPlaying;
     private String mCurrentTrack;
-    private List<String> mCurrList;
+    private Party mParty;
+
+    WebSocket ws;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,16 +79,59 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
 
         String token = CredentialsHandler.getToken(getContext().getApplicationContext());
 
-        if(token == null){
-            Intent main = new Intent();
+        if (token == null) {
+            Intent main = new Intent(getContext(), MainActivity.class);
             startActivity(main);
         }
 
+        boolean isHost = getIntent().getExtras().getBoolean("isHost");
+        mParty = getIntent().getExtras().getParcelable("party");
+
         mSessionPresenter = new SessionPresenterImpl(this);
-        mSessionPresenter.init(CredentialsHandler.getToken(getApplicationContext()));
+        mSessionPresenter.init(CredentialsHandler.getToken(getApplicationContext()), mParty, isHost);
         mSessionPresenter.setupDrawerLayoutListener(mToolBar, mDrawerLayout);
 
+        if (isHost) {
+            try {
+                ws = new WebSocketFactory().createSocket("ws://djcollab.com/api/v1/host/" + mParty.getId());
+                ws.addListener(new WebSocketAdapter() {
+                    @Override
+                    public void onTextMessage(WebSocket websocket, String message) throws Exception {
+                        if (message.contains("id:")) {
+                            Log.e(TAG, "socket message : " + message);
+                            String hostid = message.substring(3);
+                            mParty.setHostId(Integer.parseInt(hostid));
+                            RestClient.get().registerHostToParty(mParty.getHostId(), mParty.getId(), new Callback<Void>() {
+                                @Override
+                                public void success(Void aVoid, retrofit.client.Response response) {
+                                    //succesfully registered host
+                                }
 
+                                @Override
+                                public void failure(RetrofitError error) {
+                                    //failed to register host
+                                }
+                            });
+                        } else if (message.contains("add:")) {
+                            String uri = message.substring(4);
+                            play(uri); //queues object
+                        }
+                        Log.e(TAG, message);
+                    }
+                });
+
+                Subscription SocketConnection = Observable.create(subscriber -> {
+                    try {
+                        ws.connect();
+                    } catch (WebSocketException e) {
+                        e.printStackTrace();
+                    }
+                }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
 
         // Check if result comes from the correct activity
@@ -96,8 +155,6 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
         super.onSaveInstanceState(outState);
     }
 
-
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -112,9 +169,12 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
     protected void onDestroy() {
         super.onDestroy();
         mSessionPresenter.onDestroy();
+        mMediaPlayer.pause();
+        mMediaPlayer.shutdown();
         try {
             Spotify.awaitDestroyPlayer(mMediaPlayer, 5000L, TimeUnit.MILLISECONDS);
-        }catch(Exception e ){}
+        } catch (Exception e) {
+        }
         ButterKnife.unbind(this);
     }
 
@@ -217,27 +277,15 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
     @Override
     public void play(String url) {
         if (mMediaPlayer != null) {
-            if(mCurrList == null) mCurrList = new ArrayList<>();
-            mCurrList.add(url);
-            if(!url.equals(mCurrentTrack))
+            if (!url.equals(mCurrentTrack))
                 mMediaPlayer.queue(url);
         }
-
-
     }
 
     @Override
     public void playlist(List<String> url) {
         if (mMediaPlayer != null) {
-            if(mCurrList == null) {
-                mCurrList = new ArrayList<>(url);
-            }else{
-                mCurrList.addAll(url);
-            }
-
-            mCurrList = new ArrayList<>(url);
-            mCurrentTrack = mCurrList.get(0);
-            for(String s : url){
+            for (String s : url) {
                 mMediaPlayer.queue(s);
             }
         }
@@ -285,20 +333,21 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
         return mCurrentTrack;
     }
 
+    boolean isFirst = true;
+
     @Override
     public void onPlaybackEvent(EventType type, PlayerState state) {
-        Log.e(TAG, type.toString());
-        if(type == EventType.TRACK_START){
+        if (type == EventType.TRACK_START) {
             mIsPlaying = true;
-        }else if(type == EventType.TRACK_END){
+        } else if (type == EventType.TRACK_END) {
             mIsPlaying = false;
-        }
-        if(type == EventType.TRACK_CHANGED){
+        } else if (type == EventType.TRACK_CHANGED) {
             mCurrentTrack = state.trackUri;
-            if(mCurrList.size() > 0) {
+            if (!isFirst) {
                 mSessionPresenter.removeTrack(0);
-                mCurrList.remove(0);
             }
+            isFirst = false;
+
         }
     }
 

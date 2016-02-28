@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 
+import com.teioh08.djcollab.Party;
 import com.teioh08.djcollab.R;
 
 import java.util.ArrayList;
@@ -18,12 +19,12 @@ public class SessionListAdapter extends ArrayAdapter {
 
     public final static String TAG = SessionListAdapter.class.getSimpleName();
 
-    private ArrayList<String> mSessions;
+    private ArrayList<Party> mSessions;
     private LayoutInflater mInflater;
     private Context context;
     private int layoutResource;
 
-    public SessionListAdapter(Context context, int resource, List<String> objects) {
+    public SessionListAdapter(Context context, int resource, List<Party> objects) {
         super(context, resource, objects);
         this.context = context;
         this.mSessions = new ArrayList<>(objects);
@@ -45,7 +46,7 @@ public class SessionListAdapter extends ArrayAdapter {
             holder = (ChapterHolder) row.getTag(R.string.SessionListHolder);
         }
 
-        holder.mTitle.setText(mSessions.get(position));
+        holder.mTitle.setText(mSessions.get(position).getName());
         return row;
     }
 

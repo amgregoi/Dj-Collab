@@ -2,8 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:layout_marginBottom="5dp"
-              android:background="?android:attr/selectableItemBackground">
+              android:background="@color/black">
 
     <ImageView
         android:id="@+id/entity_image"
@@ -29,6 +28,7 @@
             android:maxLines="1"
             android:scrollHorizontally="true"
             android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/white"
             />
 
         <TextView
@@ -40,7 +40,9 @@
             android:gravity="top"
             android:maxLines="1"
             android:scrollHorizontally="true"
-            android:textAppearance="?android:attr/textAppearanceSmall"/>
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/white"
+            />
     </LinearLayout>
 
 

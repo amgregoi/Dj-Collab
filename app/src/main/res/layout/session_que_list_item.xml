@@ -1,59 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:layout_marginBottom="5dp"
-              android:background="?android:attr/selectableItemBackground">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="?android:attr/selectableItemBackground">
 
-    <ImageView
-        android:id="@+id/entity_image"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginEnd="8dp"/>
+	<ImageView
+		android:id="@+id/entity_image"
+		android:layout_width="60dp"
+		android:layout_height="60dp"
+		android:layout_marginEnd="8dp"/>
 
 	<Button
 		android:id="@+id/addbutton"
-		android:layout_height="wrap_content"
 		android:layout_width="wrap_content"
-		android:text="+"
-		android:textSize="19sp"
-		android:background="@drawable/test"
+		android:layout_height="wrap_content"
 		android:layout_alignParentEnd="true"
+		android:background="@drawable/test"
+		android:text="+"
+		android:textColor="@color/white"
+		android:textSize="19sp"
 		/>
 
-    <LinearLayout
-	    android:id="@+id/SongInfo"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-	    android:layout_toEndOf="@id/entity_image"
-        android:layout_toStartOf="@id/addbutton"
-	    >
+	<LinearLayout
+		android:id="@+id/SongInfo"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_toEndOf="@id/entity_image"
+		android:layout_toStartOf="@id/addbutton"
+		android:orientation="vertical"
+		>
 
-        <TextView
-            android:id="@+id/entity_title"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:ellipsize="marquee"
-            android:gravity="bottom"
-            android:maxLines="1"
-            android:scrollHorizontally="true"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            />
+		<TextView
+			android:id="@+id/entity_title"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:layout_weight="1"
+			android:ellipsize="marquee"
+			android:gravity="bottom"
+			android:maxLines="1"
+			android:scrollHorizontally="true"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textColor="@color/white"
 
-        <TextView
-            android:id="@+id/entity_subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:ellipsize="marquee"
-            android:gravity="top"
-            android:maxLines="1"
-            android:scrollHorizontally="true"
-            android:textAppearance="?android:attr/textAppearanceSmall"/>
-    </LinearLayout>
+			/>
 
-
-
+		<TextView
+			android:id="@+id/entity_subtitle"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:layout_weight="1"
+			android:ellipsize="marquee"
+			android:gravity="top"
+			android:maxLines="1"
+			android:scrollHorizontally="true"
+			android:textAppearance="?android:attr/textAppearanceSmall"
+			android:textColor="@color/white"
+			/>
+	</LinearLayout>
 </RelativeLayout>

@@ -36,8 +36,6 @@ public class CredentialsHandler {
         String token = sharedPref.getString(ACCESS_TOKEN, null);
         long expiresAt = sharedPref.getLong(EXPIRES_AT, 0L);
 
-
-        Log.e("RAWR", "difference: " + (expiresAt - System.currentTimeMillis()));
         if (token == null || expiresAt < System.currentTimeMillis()) {
             return null;
         }

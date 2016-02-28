@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,12 +34,14 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         public final TextView title;
         public final TextView subtitle;
         public final ImageView image;
+//        public final Button addButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.entity_title);
             subtitle = (TextView) itemView.findViewById(R.id.entity_subtitle);
             image = (ImageView) itemView.findViewById(R.id.entity_image);
+//            addButton = (Button) itemView.findViewById(R.id.addbutton);
             itemView.setOnClickListener(this);
         }
 
@@ -80,12 +83,20 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         }
     }
 
+    public Track getTrackAt(int pos){
+        if(mItems.size() == 0) return null;
+        return mItems.get(pos);
+    }
+
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
         if(mIsPlaylist) v = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlist_item, parent, false);
-        else v = LayoutInflater.from(parent.getContext()).inflate(R.layout.session_que_list_item, parent, false);
+        else {
+            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.session_que_list_item, parent, false);
+            Button b = (Button) v.findViewById(R.id.addbutton);
+        }
         return new ViewHolder(v);
     }
 
@@ -105,6 +116,15 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         if (image != null) {
             Glide.with(mContext).load(image.url).into(holder.image);
         }
+
+//        if(holder.addButton != null) {
+//            holder.addButton.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    mListener.onItemSelected(v, mItems.get(position));
+//                }
+//            });
+//        }
     }
 
     @Override
