@@ -87,6 +87,7 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
         boolean isHost = getIntent().getExtras().getBoolean("isHost");
         mParty = getIntent().getExtras().getParcelable("party");
 
+        mActivityTitle.setText(mParty.getName());
         mSessionPresenter = new SessionPresenterImpl(this);
         mSessionPresenter.init(CredentialsHandler.getToken(getApplicationContext()), mParty, isHost);
         mSessionPresenter.setupDrawerLayoutListener(mToolBar, mDrawerLayout);
