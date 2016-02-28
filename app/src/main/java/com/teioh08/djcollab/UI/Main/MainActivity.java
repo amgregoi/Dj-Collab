@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.spotify.sdk.android.authentication.AuthenticationClient;
@@ -22,6 +23,7 @@ import com.teioh08.djcollab.R;
 
 import java.util.concurrent.TimeUnit;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -34,9 +36,15 @@ public class MainActivity extends AppCompatActivity{
     private static final int REQUEST_CODE = 1337;
     private Player mPlayer;
 
+    @Bind(R.id.searchView) SearchView mSearchView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+        mSearchView.setVisibility(View.GONE);
 
         String token = CredentialsHandler.getToken(this);
         if (token == null) {
@@ -47,8 +55,7 @@ public class MainActivity extends AppCompatActivity{
             AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
         }
 
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+
     }
 
     public void onLoginButtonClicked(View view) {
