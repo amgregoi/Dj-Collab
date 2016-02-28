@@ -61,6 +61,7 @@ public class SessionPresenterImpl implements SessionPresenter {
     private boolean mIsPartyHost;
     private Party mParty;
 
+    private SpotifyService mService;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -88,9 +89,9 @@ public class SessionPresenterImpl implements SessionPresenter {
         if (accessToken != null) spotifyApi.setAccessToken(accessToken);
         else logError("No valid access token");
 
-        SpotifyService service = spotifyApi.getService();
-        mSearchPager = new SearchPager(service);
-        mPlaylistPager = new PlaylistPager(service);
+        mService = spotifyApi.getService();
+        mSearchPager = new SearchPager(mService);
+        mPlaylistPager = new PlaylistPager(mService);
 
         mSessionActivityMap.getContext().bindService(PreviewService.getIntent(mSessionActivityMap.getContext()), mServiceConnection, Activity.BIND_AUTO_CREATE);
 
@@ -99,7 +100,7 @@ public class SessionPresenterImpl implements SessionPresenter {
         setupPlaylistView();
 
         for (String s : mParty.getSongList()) {
-            service.getTrack(s, new SpotifyCallback<Track>() {
+            mService.getTrack(s, new SpotifyCallback<Track>() {
                 @Override
                 public void failure(SpotifyError error) {
                     //failed to get track
@@ -210,16 +211,19 @@ public class SessionPresenterImpl implements SessionPresenter {
             RestClient.get().addTrackToParty(mParty.getId(), item.id, new retrofit.Callback<Void>() {
                 @Override
                 public void success(Void aVoid, Response response) {
-                    mPlayListAdapter.addSingleData(item);
+                    refreshPlaylist();
+//                    mPlayListAdapter.addSingleData(item);
                     //succesfully add song to host list
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
-                    logError(error.toString());
+                    refreshPlaylist();
+//                    logError(error.toString());
                     //fail to add song ot  host list
                 }
             });
+
             if (currentTrackUrl == null || !currentTrackUrl.equals(previewUrl))
                 mPlayerInt.play(previewUrl);
             else if (mPlayerInt.isPlaying()) mPlayerInt.pause();
@@ -350,19 +354,54 @@ public class SessionPresenterImpl implements SessionPresenter {
 
     @Override
     public void removeTrack(int pos) {
-        RestClient.get().removeSongPartyList(mParty.getId(), mPlayListAdapter.getTrackAt(pos).id, new Callback<Void>() {
+        if(mPlayListAdapter.getItemCount() > pos) {
+            RestClient.get().removeSongPartyList(mParty.getId(), mPlayListAdapter.getTrackAt(pos).id, new Callback<Void>() {
+                @Override
+                public void success(Void aVoid, Response response) {
+                    mPlayListAdapter.removeSingleData(pos);
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    //failed to remove song
+                }
+            });
+        }
+    }
+
+    @Override
+    public void refreshPlaylist(){
+        RestClient.get().getParty(mParty.getId(), new Callback<Party>() {
             @Override
-            public void success(Void aVoid, Response response) {
-                mPlayListAdapter.removeSingleData(pos);
+            public void success(Party party, Response response) {
+                mParty = party;
+                mPlayListAdapter.clearData();
+                getTracksFromUri();
             }
 
             @Override
             public void failure(RetrofitError error) {
-                //failed to remove song
+
             }
         });
+    }
 
+    private void getTracksFromUri(){
+        List<Track> newTracks = new ArrayList<>();
+        for (String s : mParty.getSongList()) {
+            mService.getTrack(s, new SpotifyCallback<Track>() {
+                @Override
+                public void failure(SpotifyError error) {
+                    //failed to get track
+                }
 
+                @Override
+                public void success(Track track, Response response) {
+                    mPlayListAdapter.addSingleData(track);
+                    //succesfully got track
+                }
+            });
+        }
     }
 }
 

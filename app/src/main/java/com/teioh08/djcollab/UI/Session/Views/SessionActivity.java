@@ -115,6 +115,7 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
                         } else if (message.contains("add:")) {
                             String uri = message.substring(4);
                             play(uri); //queues object
+                            mSessionPresenter.refreshPlaylist();
                         }
                         Log.e(TAG, message);
                     }
@@ -170,7 +171,6 @@ public class SessionActivity extends AppCompatActivity implements SessionActivit
         super.onDestroy();
         mSessionPresenter.onDestroy();
         mMediaPlayer.pause();
-        mMediaPlayer.shutdown();
         try {
             Spotify.awaitDestroyPlayer(mMediaPlayer, 5000L, TimeUnit.MILLISECONDS);
         } catch (Exception e) {

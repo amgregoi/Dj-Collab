@@ -41,26 +41,6 @@ public class JoinFragment extends Fragment {
         View joinView = inflater.inflate(R.layout.fragment_join_session, container, false);
         ButterKnife.bind(this, joinView);
 
-        RestClient.get().getHostList(new Callback<List<Party>>() {
-            @Override
-            public void success(List<Party> call, retrofit.client.Response response) {
-                if(call != null) mPartyList = new ArrayList<Party>(call);
-                else mPartyList = new ArrayList<Party>();
-                mAdapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, mPartyList);
-                mSessionList.setAdapter(mAdapter);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(TAG, "Failed to retrive party list : " + error.getMessage());
-                mPartyList = new ArrayList<Party>();
-                mAdapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, mPartyList);
-                mSessionList.setAdapter(mAdapter);
-
-            }
-
-        });
-
         mSearchView.setVisibility(View.GONE);
         return joinView;
     }
@@ -80,6 +60,25 @@ public class JoinFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        RestClient.get().getHostList(new Callback<List<Party>>() {
+            @Override
+            public void success(List<Party> call, retrofit.client.Response response) {
+                if (call != null) mPartyList = new ArrayList<Party>(call);
+                else mPartyList = new ArrayList<Party>();
+                mAdapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, mPartyList);
+                mSessionList.setAdapter(mAdapter);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(TAG, "Failed to retrive party list : " + error.getMessage());
+                mPartyList = new ArrayList<Party>();
+                mAdapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, mPartyList);
+                mSessionList.setAdapter(mAdapter);
+
+            }
+
+        });
     }
 
     @Override

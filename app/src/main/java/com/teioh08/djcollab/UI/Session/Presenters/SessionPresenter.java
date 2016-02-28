@@ -49,4 +49,6 @@ public interface SessionPresenter {
 
     void removeTrack(int pos);
 
+    void refreshPlaylist();
+
 }

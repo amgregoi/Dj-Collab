@@ -30,5 +30,7 @@ public interface API {
     @DELETE("/api/v1/party/{partyId}/{songId}")
     void removeSongPartyList(@Path("partyId") int partyid, @Path("songId") String songid, Callback<Void> callback);
 
+    @GET("/api/v1/party/{partyId}")
+    void getParty(@Path("partyId") int partyid, Callback<Party> callback);
 }
 
