@@ -34,14 +34,15 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         public final TextView title;
         public final TextView subtitle;
         public final ImageView image;
-//        public final Button addButton;
+        public final Button addButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.entity_title);
             subtitle = (TextView) itemView.findViewById(R.id.entity_subtitle);
             image = (ImageView) itemView.findViewById(R.id.entity_image);
-//            addButton = (Button) itemView.findViewById(R.id.addbutton);
+            addButton = (Button) itemView.findViewById(R.id.addbutton);
+            if(addButton != null) addButton.setVisibility(View.GONE);
             itemView.setOnClickListener(this);
         }
 
