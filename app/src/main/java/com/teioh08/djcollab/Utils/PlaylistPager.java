@@ -1,5 +1,6 @@
 package com.teioh08.djcollab.Utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +9,6 @@ import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.client.Response;
 
 public class PlaylistPager {
@@ -17,9 +17,10 @@ public class PlaylistPager {
     private int mCurrentOffset;
     private int mPageSize;
     private String mCurrentQuery;
+    private List<String> mPlaylist;
 
-    public interface CompleteListener {
-        void onComplete(List<Track> items);
+    public interface PlaylistCompleteListener {
+        void onComplete(Track items);
         void onError(Throwable error);
     }
 
@@ -28,27 +29,36 @@ public class PlaylistPager {
     }
 
     // Search Query
-    public void getFirstPageSearch(String query, int pageSize, CompleteListener listener) {
+    public void getFirstPageSearch(String query, int pageSize, PlaylistCompleteListener listener, List<String> playlist) {
         mCurrentOffset = 0;
         mPageSize = pageSize;
         mCurrentQuery = query;
+        mPlaylist = new ArrayList<>(playlist);
+
         getData(query, 0, pageSize, listener);
     }
 
-    public void getNextPageSearch(CompleteListener listener) {
+    public void getNextPageSearch(PlaylistCompleteListener listener) {
         mCurrentOffset += mPageSize;
+
         getData(mCurrentQuery, mCurrentOffset, mPageSize, listener);
     }
 
-    private void getData(String query, int offset, final int limit, final CompleteListener listener) {
+    public void addSong(String id, PlaylistCompleteListener listener){
+        getData(id, mCurrentOffset, mPageSize, listener);
+    }
+
+
+    private void getData(String query, int offset, final int limit, final PlaylistCompleteListener listener) {
         Map<String, Object> options = new HashMap<>();
         options.put(SpotifyService.OFFSET, offset);
         options.put(SpotifyService.LIMIT, limit);
 
-        mSpotifyApi.searchTracks(query, options, new SpotifyCallback<TracksPager>() {
+        mSpotifyApi.getTrack(query, options, new SpotifyCallback<Track>() {
             @Override
-            public void success(TracksPager tracksPager, Response response) {
-                listener.onComplete(tracksPager.tracks.items);
+            public void success(Track track, Response response) {
+                listener.onComplete(track);
+
             }
 
             @Override

@@ -2,6 +2,7 @@ package com.teioh08.djcollab.Utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,6 +36,8 @@ public class CredentialsHandler {
         String token = sharedPref.getString(ACCESS_TOKEN, null);
         long expiresAt = sharedPref.getLong(EXPIRES_AT, 0L);
 
+
+        Log.e("RAWR", "difference: " + (expiresAt - System.currentTimeMillis()));
         if (token == null || expiresAt < System.currentTimeMillis()) {
             return null;
         }

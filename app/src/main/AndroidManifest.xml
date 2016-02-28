@@ -30,7 +30,7 @@
 		          android:theme="@style/AppTheme">
 		</activity>
 
-		<service android:name="com.teioh08.djcollab.Services.PlayerService"/>
+		<service android:name=".Services.PreviewService"/>
 	</application>
 
 </manifest>

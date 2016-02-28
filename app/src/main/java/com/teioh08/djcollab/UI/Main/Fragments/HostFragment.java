@@ -7,23 +7,26 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
+import android.widget.Toolbar;
 
 import com.teioh08.djcollab.R;
 import com.teioh08.djcollab.UI.Session.Views.SessionActivity;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-/**
- * Created by amgregoi on 1/30/16.
- */
 public class HostFragment extends Fragment {
 
+    @Bind(R.id.searchView) SearchView mSearchView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View hostView = inflater.inflate(R.layout.fragment_host_setup, container, false);
         ButterKnife.bind(this, hostView);
+
+        mSearchView.setVisibility(View.GONE);
         return hostView;
     }
 

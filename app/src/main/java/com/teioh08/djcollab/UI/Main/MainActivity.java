@@ -3,6 +3,7 @@ package com.teioh08.djcollab.UI.Main;
 // Created by Spotify on 25/02/14.
 // Copyright (c) 2014 Spotify. All rights reserved.
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -76,7 +77,6 @@ public class MainActivity extends AppCompatActivity{
                 case TOKEN:
                     logMessage("Got token: " + response.getAccessToken());
                     CredentialsHandler.setToken(this, response.getAccessToken(), response.getExpiresIn(), TimeUnit.SECONDS);
-//                    startMainActivity(response.getAccessToken());
                     break;
 
                 // Auth flow returned an error
@@ -102,43 +102,16 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-//        super.onActivityResult(requestCode, resultCode, intent);
-//
-//        // Check if result comes from the correct activity
-//        if (requestCode == REQUEST_CODE) {
-//            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-//            if (response.getType() == AuthenticationResponse.Type.TOKEN) {
-//                Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
-//                mPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
-//                    @Override
-//                    public void onInitialized(Player player) {
-//                        mPlayer.addConnectionStateCallback(MainActivity.this);
-//                        mPlayer.addPlayerNotificationCallback(MainActivity.this);
-//                        mPlayer.play("spotify:track:2TpxZ7JUBn3uw46aR7qd6V");
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable throwable) {
-//                        Log.e("MainActivity", "Could not initialize player: " + throwable.getMessage());
-//                    }
-//                });
-//            }
-//        }
-//    }
-
-
     @OnClick(R.id.hostButton)
     public void onHostButtonClick(){
         Fragment host = new HostFragment();
-        getSupportFragmentManager().beginTransaction().add(R.id.container,host, "tag").addToBackStack("tag").commit();
+        getSupportFragmentManager().beginTransaction().add(R.id.container,host, TAG).addToBackStack(TAG).commit();
     }
 
     @OnClick(R.id.joinButton)
     public void onJoinButtonClick(){
         Fragment join = new JoinFragment();
-        getSupportFragmentManager().beginTransaction().add(R.id.container, join, "tag").addToBackStack("tag").commit();
+        getSupportFragmentManager().beginTransaction().add(R.id.container, join, TAG).addToBackStack(TAG).commit();
 
     }
 

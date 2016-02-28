@@ -3,7 +3,7 @@ package com.teioh08.djcollab.Player;
 
 import android.support.annotation.Nullable;
 
-public interface Player {
+public interface PlayerInt {
 
     void play(String url);
 

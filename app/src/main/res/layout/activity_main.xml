@@ -7,7 +7,7 @@
 	android:fitsSystemWindows="true"
 	tools:context=".MainActivity">
 
-	<include layout="@layout/toolbar"/>
+	<!--<include layout="@layout/toolbar"/>-->
 
 	<FrameLayout
 		android:id="@+id/container"

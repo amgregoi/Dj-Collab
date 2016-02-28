@@ -7,7 +7,7 @@ import android.util.Log;
 
 import java.io.IOException;
 
-public class PreviewPlayer implements Player, MediaPlayer.OnCompletionListener {
+public class PreviewPlayer implements PlayerInt, MediaPlayer.OnCompletionListener {
 
     private static final String TAG = PreviewPlayer.class.getSimpleName();
 

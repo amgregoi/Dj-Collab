@@ -24,6 +24,9 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
     private final List<Track> mItems = new ArrayList<>();
     private final Context mContext;
     private final ItemSelectedListener mListener;
+    private final boolean mIsPlaylist;
+
+
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -50,9 +53,10 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         void onItemSelected(View itemView, Track item);
     }
 
-    public SessionSongListAdapter(Context context, ItemSelectedListener listener) {
+    public SessionSongListAdapter(Context context, ItemSelectedListener listener, boolean isPlaylist) {
         mContext = context;
         mListener = listener;
+        mIsPlaylist = isPlaylist;
     }
 
     public void clearData() {
@@ -64,9 +68,17 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         notifyDataSetChanged();
     }
 
+    public void addSingleData(Track items) {
+        mItems.add(items);
+        notifyDataSetChanged();
+    }
+
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.session_que_list_item, parent, false);
+        View v;
+        if(mIsPlaylist) v = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlist_item, parent, false);
+        else v = LayoutInflater.from(parent.getContext()).inflate(R.layout.session_que_list_item, parent, false);
         return new ViewHolder(v);
     }
 

@@ -4,15 +4,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.SearchView;
 
 import com.teioh08.djcollab.UI.Main.Adapters.SessionListAdapter;
 import com.teioh08.djcollab.R;
 import com.teioh08.djcollab.UI.Session.Views.SessionActivity;
+import com.teioh08.djcollab.Utils.CredentialsHandler;
 
 import java.util.ArrayList;
 
@@ -27,11 +30,13 @@ public class JoinFragment extends Fragment {
     private ArrayList<String> things;
 
     @Bind(R.id.sessionListView) ListView mSessionList;
+    @Bind(R.id.searchView) SearchView mSearchView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View joinView = inflater.inflate(R.layout.fragment_join_session, container, false);
         ButterKnife.bind(this, joinView);
+
         things = new ArrayList<>();
         things.add("HARHAR");
         things.add("I'm a lumber");
@@ -39,6 +44,8 @@ public class JoinFragment extends Fragment {
         adapter = new SessionListAdapter(getContext(), R.layout.join_session_list_item, things);
 
         mSessionList.setAdapter(adapter);
+
+        mSearchView.setVisibility(View.GONE);
 
         return joinView;
     }

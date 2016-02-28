@@ -19,6 +19,7 @@
 		android:background="?attr/colorPrimary"
 		app:popupTheme="@style/AppTheme.PopupOverlay"
 		>
+
 		<TextView
 			android:id="@+id/activityTitle"
 			android:layout_width="wrap_content"

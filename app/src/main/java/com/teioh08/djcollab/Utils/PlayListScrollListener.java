@@ -13,9 +13,9 @@ public class PlayListScrollListener extends RecyclerView.OnScrollListener {
     private int mCurrentItemCount = 0;
     private boolean mAwaitingItems = true;
     private PlaylistPager mPlaylistPager;
-    private PlaylistPager.CompleteListener mPlayListener;
+    private PlaylistPager.PlaylistCompleteListener mPlayListener;
 
-    public PlayListScrollListener(LinearLayoutManager layoutManager, PlaylistPager search, PlaylistPager.CompleteListener listener) {
+    public PlayListScrollListener(LinearLayoutManager layoutManager, PlaylistPager search, PlaylistPager.PlaylistCompleteListener listener) {
         mLayoutManager = layoutManager;
         mPlaylistPager = search;
         mPlayListener = listener;

@@ -9,13 +9,13 @@ import android.support.annotation.Nullable;
 
 import com.teioh08.djcollab.Player.PreviewPlayer;
 
-public class PlayerService extends Service {
+public class PreviewService extends Service {
 
     private final IBinder mBinder = new PlayerBinder();
     private PreviewPlayer mPlayer = new PreviewPlayer();
 
     public static Intent getIntent(Context context) {
-        return new Intent(context, PlayerService.class);
+        return new Intent(context, PreviewService.class);
     }
 
     public class PlayerBinder extends Binder {

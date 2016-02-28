@@ -1,10 +1,11 @@
-package com.teioh08.djcollab.UI.Session.Views;
+package com.teioh08.djcollab.UI.Session.Views.Maps;
 
 import android.content.Context;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.widget.SearchView;
 
+import com.teioh08.djcollab.Player.PlayerInt;
 import com.teioh08.djcollab.Utils.PlayListScrollListener;
 import com.teioh08.djcollab.Utils.ResultListScrollListener;
 import com.teioh08.djcollab.UI.Session.Adapters.SessionSongListAdapter;
@@ -14,7 +15,7 @@ import java.util.List;
 import kaaes.spotify.webapi.android.models.Track;
 
 
-public interface SessionActivityMap extends SearchView.OnQueryTextListener {
+public interface SessionActivityMap extends SearchView.OnQueryTextListener, PlayerInt {
 
     void reset();
 
@@ -26,6 +27,8 @@ public interface SessionActivityMap extends SearchView.OnQueryTextListener {
 
     void setupPlaylistRecyclerView(SessionSongListAdapter adapter, LinearLayoutManager manager, PlayListScrollListener listener);
 
+    void setupSearchview();
+
     Context getContext();
 
     void setDrawerLayoutListener(ActionBarDrawerToggle mDrawerToggle);
@@ -36,5 +39,7 @@ public interface SessionActivityMap extends SearchView.OnQueryTextListener {
 
     void closeDrawer();
 
+    boolean isPlayerInitialized();
 
-}
+
+    }
