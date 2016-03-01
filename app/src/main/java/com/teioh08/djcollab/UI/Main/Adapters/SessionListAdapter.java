@@ -9,7 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 
-import com.teioh08.djcollab.Party;
+import com.teioh08.djcollab.Models.Party;
 import com.teioh08.djcollab.R;
 
 import java.util.ArrayList;

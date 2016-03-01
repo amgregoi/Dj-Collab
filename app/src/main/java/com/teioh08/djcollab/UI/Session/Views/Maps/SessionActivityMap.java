@@ -5,29 +5,18 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.widget.SearchView;
 
-import com.teioh08.djcollab.Player.PlayerInt;
-import com.teioh08.djcollab.Utils.PlayListScrollListener;
-import com.teioh08.djcollab.Utils.ResultListScrollListener;
-import com.teioh08.djcollab.UI.Session.Adapters.SessionSongListAdapter;
+import com.teioh08.djcollab.Utils.Player.PlayerInt;
+import com.teioh08.djcollab.Widgets.PlayListScrollListener;
+import com.teioh08.djcollab.Widgets.ResultListScrollListener;
+import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
 
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Track;
 
 
-public interface SessionActivityMap extends SearchView.OnQueryTextListener, PlayerInt {
-
-    void reset();
-
-    void addSearchData(List<Track> items);
-
-    void addPlaylistData(List<Track> items);
-
-    void setupSearchRecyclerView(SessionSongListAdapter adapter, LinearLayoutManager manager, ResultListScrollListener listener);
-
-    void setupPlaylistRecyclerView(SessionSongListAdapter adapter, LinearLayoutManager manager, PlayListScrollListener listener);
-
-    void setupSearchview();
+public interface SessionActivityMap{
+    void setupPlaylistRecyclerView(SongListAdapter adapter, LinearLayoutManager manager, PlayListScrollListener listener);
 
     Context getContext();
 
@@ -39,7 +28,5 @@ public interface SessionActivityMap extends SearchView.OnQueryTextListener, Play
 
     void closeDrawer();
 
-    boolean isPlayerInitialized();
-
-
-    }
+    void addSongQueue(Track track);
+}

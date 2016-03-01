@@ -1,4 +1,4 @@
-package com.teioh08.djcollab.DJCRest;
+package com.teioh08.djcollab.Webapi;
 
 
 import com.squareup.okhttp.OkHttpClient;
@@ -6,29 +6,28 @@ import com.squareup.okhttp.OkHttpClient;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
-public class RestClient {
+public class DJApi {
 
-    private static API REST_CLIENT;
+    private static DJService REST_CLIENT;
     private static String ROOT = "http://djcollab.com";
 
     static {
         setupRestClient();
     }
 
-    private RestClient() {
+    private DJApi() {
     }
 
-    public static API get() {
+    public static DJService get() {
         return REST_CLIENT;
     }
 
     private static void setupRestClient() {
-
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(ROOT)
                 .setClient(new OkClient(new OkHttpClient()))
                 .build();
 
-        REST_CLIENT = restAdapter.create(API.class);
+        REST_CLIENT = restAdapter.create(DJService.class);
     }
 }

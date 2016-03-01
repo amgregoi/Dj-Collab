@@ -1,10 +1,12 @@
-package com.teioh08.djcollab.Utils;
+package com.teioh08.djcollab.Widgets;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
-public class PlayListScrollListener extends RecyclerView.OnScrollListener {
+import com.teioh08.djcollab.Utils.SearchPager;
+
+public class ResultListScrollListener extends RecyclerView.OnScrollListener {
 
     private static final String TAG = ResultListScrollListener.class.getSimpleName();
     private static final int SCROLL_BUFFER = 3;
@@ -12,13 +14,13 @@ public class PlayListScrollListener extends RecyclerView.OnScrollListener {
     private final LinearLayoutManager mLayoutManager;
     private int mCurrentItemCount = 0;
     private boolean mAwaitingItems = true;
-    private PlaylistPager mPlaylistPager;
-    private PlaylistPager.PlaylistCompleteListener mPlayListener;
+    private SearchPager mSearchPager;
+    private SearchPager.CompleteListener mSearchListener;
 
-    public PlayListScrollListener(LinearLayoutManager layoutManager, PlaylistPager search, PlaylistPager.PlaylistCompleteListener listener) {
+    public ResultListScrollListener(LinearLayoutManager layoutManager, SearchPager search, SearchPager.CompleteListener listener) {
         mLayoutManager = layoutManager;
-        mPlaylistPager = search;
-        mPlayListener = listener;
+        mSearchPager = search;
+        mSearchListener = listener;
     }
 
     public void reset() {
@@ -41,7 +43,7 @@ public class PlayListScrollListener extends RecyclerView.OnScrollListener {
 
         if (!mAwaitingItems && itemPosition + 1 >= itemCount - SCROLL_BUFFER) {
             mAwaitingItems = true;
-            mPlaylistPager.getNextPageSearch(mPlayListener);
+            mSearchPager.getNextPageSearch(mSearchListener);
         }
     }
 }

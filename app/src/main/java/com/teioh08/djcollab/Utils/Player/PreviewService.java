@@ -1,4 +1,4 @@
-package com.teioh08.djcollab.Services;
+package com.teioh08.djcollab.Utils.Player;
 
 import android.app.Service;
 import android.content.Context;
@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-
-import com.teioh08.djcollab.Player.PreviewPlayer;
 
 public class PreviewService extends Service {
 

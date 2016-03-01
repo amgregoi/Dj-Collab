@@ -1,5 +1,7 @@
 package com.teioh08.djcollab.Utils;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +19,6 @@ public class PlaylistPager {
     private int mCurrentOffset;
     private int mPageSize;
     private String mCurrentQuery;
-    private List<String> mPlaylist;
 
     public interface PlaylistCompleteListener {
         void onComplete(Track items);
@@ -33,7 +34,6 @@ public class PlaylistPager {
         mCurrentOffset = 0;
         mPageSize = pageSize;
         mCurrentQuery = query;
-        mPlaylist = new ArrayList<>(playlist);
 
         getData(query, 0, pageSize, listener);
     }
@@ -53,18 +53,5 @@ public class PlaylistPager {
         Map<String, Object> options = new HashMap<>();
         options.put(SpotifyService.OFFSET, offset);
         options.put(SpotifyService.LIMIT, limit);
-
-        mSpotifyApi.getTrack(query, options, new SpotifyCallback<Track>() {
-            @Override
-            public void success(Track track, Response response) {
-                listener.onComplete(track);
-
-            }
-
-            @Override
-            public void failure(SpotifyError error) {
-                listener.onError(error);
-            }
-        });
     }
 }

@@ -20,9 +20,10 @@ import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 
-public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongListAdapter.ViewHolder> {
+public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHolder> {
 
     private final List<Track> mItems = new ArrayList<>();
+    private final List<String> mItemIds = new ArrayList<>();
     private final Context mContext;
     private final ItemSelectedListener mListener;
     private final boolean mIsPlaylist;
@@ -57,7 +58,7 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
         void onItemSelected(View itemView, Track item);
     }
 
-    public SessionSongListAdapter(Context context, ItemSelectedListener listener, boolean isPlaylist) {
+    public SongListAdapter(Context context, ItemSelectedListener listener, boolean isPlaylist) {
         mContext = context;
         mListener = listener;
         mIsPlaylist = isPlaylist;
@@ -70,16 +71,20 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
     public void addData(List<Track> items) {
         mItems.addAll(items);
         notifyDataSetChanged();
+        for(Track track : items)
+            mItemIds.add(track.id);
     }
 
     public void addSingleData(Track items) {
         mItems.add(items);
+        mItemIds.add(items.id);
         notifyDataSetChanged();
     }
 
     public void removeSingleData(int pos){
         if(mItems.size() > 0) {
             mItems.remove(pos);
+            mItemIds.remove(pos);
             notifyDataSetChanged();
         }
     }
@@ -87,6 +92,10 @@ public class SessionSongListAdapter extends RecyclerView.Adapter<SessionSongList
     public Track getTrackAt(int pos){
         if(mItems.size() == 0) return null;
         return mItems.get(pos);
+    }
+
+    public List<String> getTrackIds(){
+        return mItemIds;
     }
 
 

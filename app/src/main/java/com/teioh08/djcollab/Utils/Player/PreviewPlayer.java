@@ -1,4 +1,4 @@
-package com.teioh08.djcollab.Player;
+package com.teioh08.djcollab.Utils.Player;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -36,7 +36,7 @@ public class PreviewPlayer implements PlayerInt, MediaPlayer.OnCompletionListene
     }
 
     @Override
-    public void play(String url) {
+    public void queueTrack(String url) {
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
         }

@@ -1,13 +1,10 @@
-package com.teioh08.djcollab;
+package com.teioh08.djcollab.Models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.jar.Attributes;
 
 
 public class Party implements Parcelable{
