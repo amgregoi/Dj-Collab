@@ -3,6 +3,7 @@ package com.teioh08.djcollab.UI.Main.Presenters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -21,9 +22,6 @@ public class AMainPresenterImpl implements  AMainPresenter{
     private AMainMapper mAMainMap;
     private Context mAMainContext;
 
-    private static final String CLIENT_ID = "d5a5ea60d29c4c75adde4bf2efadd8e4";     //TODO: move later
-    private static final String REDIRECT_URI = "my-first-auth://callback";          //TODO: move later
-    private static final int REQUEST_CODE = 1337;                                   //TODO: move later
 
     public AMainPresenterImpl(AMainMapper map){
         mAMainMap = map;
@@ -64,18 +62,18 @@ public class AMainPresenterImpl implements  AMainPresenter{
     public void spotifyAuthenticate() {
         String token = CredentialsHandler.getToken(mAMainContext);
         if (token == null) {
-            final AuthenticationRequest request = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI)
-                    .setScopes(new String[]{"playlist-read, user-library-read, playlist-read-private, user-read-private, user-library-modify"})
+            final AuthenticationRequest request = new AuthenticationRequest.Builder(CredentialsHandler.CLIENT_ID, AuthenticationResponse.Type.TOKEN, CredentialsHandler.REDIRECT_URI)
+                    .setScopes(new String[]{"playlist-read", "user-library-read", "playlist-read-private", "user-read-private", "user-library-modify", "user-read-private"})
                     .build();
 
-            AuthenticationClient.openLoginActivity(((AMainActivity)mAMainMap), REQUEST_CODE, request);
+            AuthenticationClient.openLoginActivity(((AMainActivity)mAMainMap), CredentialsHandler.REQUEST_CODE, request);
         }
     }
 
     @Override
     public void spotifyAuthenticationResult(int requestCode, int resultCode, Intent intent) {
         // Check if result comes from the correct activity
-        if (requestCode == REQUEST_CODE) {
+        if (requestCode == CredentialsHandler.REQUEST_CODE) {
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             switch (response.getType()) {
                 case TOKEN:

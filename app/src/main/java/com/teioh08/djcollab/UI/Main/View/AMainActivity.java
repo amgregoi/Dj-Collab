@@ -11,6 +11,7 @@ import com.teioh08.djcollab.UI.Main.View.Mappers.AMainMapper;
 import com.teioh08.djcollab.UI.Main.View.Fragments.HostFragment;
 import com.teioh08.djcollab.UI.Main.View.Fragments.JoinFragment;
 import com.teioh08.djcollab.R;
+import com.teioh08.djcollab.Utils.CredentialsHandler;
 
 
 import butterknife.ButterKnife;

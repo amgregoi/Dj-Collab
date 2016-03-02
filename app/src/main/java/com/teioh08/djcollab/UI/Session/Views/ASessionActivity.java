@@ -11,13 +11,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.commonsware.cwac.merge.MergeAdapter;
 import com.teioh08.djcollab.Models.Party;
+import com.teioh08.djcollab.UI.Session.Views.Fragments.FPlaylistFragment;
 import com.teioh08.djcollab.UI.Session.Views.Fragments.FSearchTrackFragment;
 import com.teioh08.djcollab.UI.Session.Views.Maps.SessionActivityMap;
-import com.teioh08.djcollab.Utils.CredentialsHandler;
 import com.teioh08.djcollab.R;
+import com.teioh08.djcollab.Utils.CredentialsHandler;
 import com.teioh08.djcollab.Widgets.PlayListScrollListener;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
 import com.teioh08.djcollab.UI.Session.Presenters.ASessionPresenter;
@@ -26,6 +29,7 @@ import com.teioh08.djcollab.UI.Session.Presenters.ASessionPresenterImpl;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.OnItemClick;
 import kaaes.spotify.webapi.android.models.Track;
 
 public class ASessionActivity extends AppCompatActivity implements SessionActivityMap {
@@ -38,6 +42,7 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
     @Bind(R.id.drawer_layout) DrawerLayout mDrawerLayout;
     @Bind(R.id.session_playlist) RecyclerView mPlayList;
     @Bind(R.id.toolbar) Toolbar mToolBar;
+    @Bind(R.id.drawer_layout_list) ListView mDrawerLayoutList;
     @Bind(R.id.activityTitle) TextView mActivityTitle;
 
     public static Intent constructSessionActivityIntent(Context context, Party party, boolean isHost){
@@ -96,8 +101,8 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
     public void setupPlaylistRecyclerView(SongListAdapter adapter, LinearLayoutManager manager, PlayListScrollListener listener) {
         mPlayList.setLayoutManager(manager);
         mPlayList.setAdapter(adapter);
-        mPlayList.addOnScrollListener(listener);
-        mPlayList.setHasFixedSize(true);
+//        mPlayList.addOnScrollListener(listener);
+//        mPlayList.setHasFixedSize(true);
     }
 
     @Override
@@ -130,10 +135,46 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
         mASessionPresenter.queueTrack(track.uri);
     }
 
+    @Override
+    public void setupDrawerAdapter(MergeAdapter mDrawerAdapter) {
+        mDrawerLayoutList.setAdapter(mDrawerAdapter);
+    }
+
+    @Override
+    public void openPlaylistFragment(String playlist, String userid, String playlistName) {
+        Fragment playlistFrag = new FPlaylistFragment();
+        Bundle bundle = getIntent().getExtras();
+        bundle.putString("PLAYLIST", playlist);
+        bundle.putString("USERID", userid);
+        bundle.putString("PLAYLISTNAME", playlistName);
+        playlistFrag.setArguments(bundle);
+        getSupportFragmentManager().beginTransaction().add(android.R.id.content, playlistFrag, TAG).addToBackStack(TAG).commit();
+
+    }
+
     @OnClick(R.id.add_song_button)
     void onAddSongButtonClick(){
         Fragment search = new FSearchTrackFragment();
-        search.setArguments(getIntent().getExtras());
+        Bundle bundle = getIntent().getExtras();
+        search.setArguments(bundle);
         getSupportFragmentManager().beginTransaction().add(android.R.id.content, search, TAG).addToBackStack(TAG).commit();
+
     }
+
+    @OnItemClick(R.id.drawer_layout_list)
+    void onDrawerItemClick(int position){
+        mASessionPresenter.onDrawerItemSelected(position);
+    }
+
+    @Override
+    public void setToolbartitle(String title){
+        mActivityTitle.setText(title);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        mASessionPresenter.spotifyAuthenticationResult(requestCode, resultCode, intent);
+    }
+
 }

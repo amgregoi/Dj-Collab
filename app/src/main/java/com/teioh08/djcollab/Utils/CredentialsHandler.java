@@ -11,6 +11,11 @@ public class CredentialsHandler {
     private static final String ACCESS_TOKEN = "access_token";
     private static final String EXPIRES_AT = "expires_at";
 
+    public static final String CLIENT_ID = "d5a5ea60d29c4c75adde4bf2efadd8e4";     //TODO: move later
+    public static final String REDIRECT_URI = "my-first-auth://callback";          //TODO: move later
+    public static final int REQUEST_CODE = 1337;                                   //TODO: move later
+
+
     public static void setToken(Context context, String token, long expiresIn, TimeUnit unit) {
         Context appContext = context.getApplicationContext();
 

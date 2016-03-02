@@ -2,21 +2,18 @@ package com.teioh08.djcollab.UI.Session.Presenters;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 
-import com.commonsware.cwac.merge.MergeAdapter;
 import com.teioh08.djcollab.Models.Party;
-import com.teioh08.djcollab.R;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
-import com.teioh08.djcollab.UI.Session.Views.Fragments.FSearchTrackFragment;
-import com.teioh08.djcollab.UI.Session.Views.Maps.FSearchTrackMapper;
+import com.teioh08.djcollab.UI.Session.Views.Maps.FPlaylistMapper;
 import com.teioh08.djcollab.UI.Session.Views.ASessionActivity;
+import com.teioh08.djcollab.Utils.CredentialsHandler;
 import com.teioh08.djcollab.Utils.SearchPager;
+import com.teioh08.djcollab.Utils.UserPlaylistPager;
 import com.teioh08.djcollab.Webapi.DJApi;
+import com.teioh08.djcollab.Widgets.PlaylistResultScrollListener;
 import com.teioh08.djcollab.Widgets.ResultListScrollListener;
 
 import java.util.List;
@@ -28,21 +25,20 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class FSearchTrackPresenterImpl implements FSearchTrackPresenter{
+public class FPlaylistPresenterImpl implements FPlaylistPresenter {
     final public static String TAG = FSearchTrackPresenterImpl.class.getSimpleName();
     public static final int PAGE_SIZE = 20;
 
-    private FSearchTrackMapper mFSearchTrackMap;
+    private FPlaylistMapper mFPlaylistMapper;
 
-    public FSearchTrackPresenterImpl(FSearchTrackMapper map) {
-        mFSearchTrackMap = map;
+    public FPlaylistPresenterImpl(FPlaylistMapper map) {
+        mFPlaylistMapper = map;
     }
 
-    private SearchPager mSearchPager;
-    private SearchPager.CompleteListener mSearchCompleteListener;
-    private ResultListScrollListener mScrollListener;
+    private UserPlaylistPager mUserPlaylistPager;
+    private UserPlaylistPager.CompleteListener mPlaylistCompleteListener;
+    private PlaylistResultScrollListener mScrollListener;
     private SongListAdapter mSongListAdapter;
-    private String mCurrentQuery;
 
     private boolean mIsPartyHost;
     private Party mParty;
@@ -51,22 +47,23 @@ public class FSearchTrackPresenterImpl implements FSearchTrackPresenter{
 
     @Override
     public void init(Bundle bundle) {
-        mFSearchTrackMap.setupSearchview();
+        mFPlaylistMapper.setupSearchview();
 
         mIsPartyHost = bundle.getBoolean(ASessionActivity.ISHOST_ARGUMENT_KEY);
         mParty = bundle.getParcelable(ASessionActivity.PARTY_ARGUMENT_KEY);
+        String partyId = bundle.getString("PLAYLIST");
+        String userId = bundle.getString("USERID");
+        String playlistName = bundle.getString("PLAYLISTNAME");
+
 
         mSpotifyService = new SpotifyApi().getService();
-        mSearchPager = new SearchPager(mSpotifyService);
+        mUserPlaylistPager = new UserPlaylistPager(mSpotifyService, userId, partyId, CredentialsHandler.getToken(mFPlaylistMapper.getContext()));
         setupSearchSongView();
 
-        if(bundle.containsKey("PLAYLIST") && bundle.containsKey("USERID")){
-            String partyId = bundle.getString("PLAYLIST");
-            String userId = bundle.getString("USERID");
-            //get playlist tracks
-        }else {
-            //else something else
-        }
+        mFPlaylistMapper.setupToolbarTitle(playlistName);
+
+        search();
+
     }
 
     @Override
@@ -107,22 +104,19 @@ public class FSearchTrackPresenterImpl implements FSearchTrackPresenter{
 
     @Override
     public void onQuerySubmit(String query) {
-        search(query);
+//        search();
     }
 
     @Override
     public void loadMoreResults() {
-        mSearchPager.getNextPageSearch(mSearchCompleteListener);
+        mUserPlaylistPager.getNextPageSearch(mPlaylistCompleteListener);
         Log.d(TAG, "Load more...");
     }
 
     @Override
-    public void search(@Nullable String searchQuery) {
-        if (searchQuery != null && !searchQuery.isEmpty() && !searchQuery.equals(mCurrentQuery)) {
-            logMessage("query text submit " + searchQuery);
-            mCurrentQuery = searchQuery;
-            mFSearchTrackMap.reset();
-            mSearchCompleteListener = new SearchPager.CompleteListener() {
+    public void search() {
+            mFPlaylistMapper.reset();
+            mPlaylistCompleteListener = new UserPlaylistPager.CompleteListener() {
                 @Override
                 public void onComplete(List<Track> items) {
                     addSearchData(items);
@@ -133,8 +127,8 @@ public class FSearchTrackPresenterImpl implements FSearchTrackPresenter{
                     logError(error.getMessage());
                 }
             };
-            mSearchPager.getFirstPageSearch(searchQuery, PAGE_SIZE, mSearchCompleteListener);
-        }
+            mUserPlaylistPager.getFirstPageSearch(PAGE_SIZE, mPlaylistCompleteListener);
+
     }
 
     @Override //itemclick
@@ -153,7 +147,7 @@ public class FSearchTrackPresenterImpl implements FSearchTrackPresenter{
     }
 
     private void setupSearchSongView() {
-        mSearchCompleteListener = new SearchPager.CompleteListener() {
+        mPlaylistCompleteListener = new UserPlaylistPager.CompleteListener() {
             @Override
             public void onComplete(List<Track> items) {
                 mSongListAdapter.addData(items);
@@ -165,10 +159,10 @@ public class FSearchTrackPresenterImpl implements FSearchTrackPresenter{
             }
         };
 
-        mSongListAdapter = new SongListAdapter(mFSearchTrackMap.getContext(), (itemView, item) -> selectTrack(item), false);
-        LinearLayoutManager mLayoutManager = new LinearLayoutManager(mFSearchTrackMap.getContext());
-        mScrollListener = new ResultListScrollListener(mLayoutManager, mSearchPager, mSearchCompleteListener);
-        mFSearchTrackMap.setupSearchRecyclerView(mSongListAdapter, mLayoutManager, mScrollListener);
+        mSongListAdapter = new SongListAdapter(mFPlaylistMapper.getContext(), (itemView, item) -> selectTrack(item), false);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(mFPlaylistMapper.getContext());
+        mScrollListener = new PlaylistResultScrollListener(mLayoutManager, mUserPlaylistPager, mPlaylistCompleteListener);
+        mFPlaylistMapper.setupSearchRecyclerView(mSongListAdapter, mLayoutManager, mScrollListener);
     }
 
     private void logError(String msg) {

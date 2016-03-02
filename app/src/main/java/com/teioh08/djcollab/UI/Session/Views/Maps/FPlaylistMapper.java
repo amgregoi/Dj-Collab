@@ -5,14 +5,16 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.widget.SearchView;
 
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
+import com.teioh08.djcollab.Widgets.PlayListScrollListener;
+import com.teioh08.djcollab.Widgets.PlaylistResultScrollListener;
 import com.teioh08.djcollab.Widgets.ResultListScrollListener;
 
 /**
  * Created by amgregoi on 2/29/16.
  */
-public interface FSearchTrackMapper extends SearchView.OnQueryTextListener {
+public interface FPlaylistMapper extends SearchView.OnQueryTextListener{
 
-    void setupSearchRecyclerView(SongListAdapter adapter, LinearLayoutManager manager, ResultListScrollListener listener);
+    void setupSearchRecyclerView(SongListAdapter adapter, LinearLayoutManager manager, PlaylistResultScrollListener listener);
 
     Context getContext();
 

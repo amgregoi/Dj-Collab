@@ -33,6 +33,7 @@
 			android:textAlignment="center"
 			android:textSize="24sp"
 			android:textStyle="bold"
+			android:textColor="@color/white"
 		    android:layout_marginLeft="5dp"
 			/>
 

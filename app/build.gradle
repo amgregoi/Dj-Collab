@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.teioh08.spot"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -80,3 +80,15 @@ repositories {
 apply plugin: 'com.android.application' //or apply plugin: 'java'
 apply plugin: 'me.tatarka.retrolambda'
 //end retrolambda
+
+//merge adapter - test
+repositories {
+    maven {
+        url "https://s3.amazonaws.com/repo.commonsware.com"
+    }
+}
+
+dependencies {
+    compile 'com.commonsware.cwac:merge:1.1.+'
+}
+//end merge adapter

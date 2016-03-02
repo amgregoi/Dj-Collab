@@ -13,33 +13,37 @@ import android.widget.TextView;
 
 import com.teioh08.djcollab.R;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
-import com.teioh08.djcollab.UI.Session.Views.Maps.FSearchTrackMapper;
+import com.teioh08.djcollab.UI.Session.Presenters.FPlaylistPresenter;
+import com.teioh08.djcollab.UI.Session.Presenters.FPlaylistPresenterImpl;
 import com.teioh08.djcollab.UI.Session.Presenters.FSearchTrackPresenter;
 import com.teioh08.djcollab.UI.Session.Presenters.FSearchTrackPresenterImpl;
+import com.teioh08.djcollab.UI.Session.Views.Maps.FPlaylistMapper;
+import com.teioh08.djcollab.UI.Session.Views.Maps.FSearchTrackMapper;
 import com.teioh08.djcollab.Widgets.PlayListScrollListener;
+import com.teioh08.djcollab.Widgets.PlaylistResultScrollListener;
 import com.teioh08.djcollab.Widgets.ResultListScrollListener;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
 
-public class FSearchTrackFragment extends Fragment implements FSearchTrackMapper {
-    final public static String TAG = FSearchTrackFragment.class.getSimpleName();
+public class FPlaylistFragment extends Fragment implements FPlaylistMapper {
+    final public static String TAG = FPlaylistFragment.class.getSimpleName();
 
 
     @Bind(R.id.search_song) RecyclerView mSearchTrackView;
     @Bind(R.id.searchView) SearchView mSearchView;
     @Bind(R.id.activityTitle) TextView mActivityTitle;
 
-    FSearchTrackPresenter mFSearchTrackPresenter;
+    FPlaylistPresenter mFPlaylistPresenter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View searchView = inflater.inflate(R.layout.fragment_search_track, container, false);
         ButterKnife.bind(this, searchView);
 
-        mFSearchTrackPresenter = new FSearchTrackPresenterImpl(this);
-        mFSearchTrackPresenter.init(getArguments());
+        mFPlaylistPresenter = new FPlaylistPresenterImpl(this);
+        mFPlaylistPresenter.init(getArguments());
         return searchView;
     }
 
@@ -73,7 +77,7 @@ public class FSearchTrackFragment extends Fragment implements FSearchTrackMapper
     }
 
     @Override
-    public void setupSearchRecyclerView(SongListAdapter adapter, LinearLayoutManager manager, ResultListScrollListener listener) {
+    public void setupSearchRecyclerView(SongListAdapter adapter, LinearLayoutManager manager, PlaylistResultScrollListener listener) {
         mSearchTrackView.setLayoutManager(manager);
         mSearchTrackView.setAdapter(adapter);
         mSearchTrackView.addOnScrollListener(listener);
@@ -82,7 +86,7 @@ public class FSearchTrackFragment extends Fragment implements FSearchTrackMapper
 
     @Override
     public void reset() {
-        mFSearchTrackPresenter.resetData();
+        mFPlaylistPresenter.resetData();
     }
 
     @Override
@@ -102,20 +106,21 @@ public class FSearchTrackFragment extends Fragment implements FSearchTrackMapper
         });
     }
 
+    @Override
+    public void setupToolbarTitle(String name) {
+        mActivityTitle.setText(name);
+    }
+
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        mFSearchTrackPresenter.onQuerySubmit(query);
+        mFPlaylistPresenter.onQuerySubmit(query);
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        return false;
-    }
 
-    @Override
-    public void setupToolbarTitle(String name){
-        mActivityTitle.setText(name);
+        return false;
     }
 }

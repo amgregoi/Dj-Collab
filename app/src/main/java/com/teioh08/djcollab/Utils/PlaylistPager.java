@@ -53,5 +53,20 @@ public class PlaylistPager {
         Map<String, Object> options = new HashMap<>();
         options.put(SpotifyService.OFFSET, offset);
         options.put(SpotifyService.LIMIT, limit);
+
+
+
+        mSpotifyApi.getTrack(query, options, new SpotifyCallback<Track>() {
+            @Override
+            public void success(Track track, Response response) {
+                listener.onComplete(track);
+
+            }
+
+            @Override
+            public void failure(SpotifyError error) {
+                listener.onError(error);
+            }
+        });
     }
 }

@@ -1,6 +1,7 @@
 package com.teioh08.djcollab.UI.Session.Presenters;
 
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
@@ -24,4 +25,7 @@ public interface ASessionPresenter extends PlayerInt, LifeCycleMapper {
 
     void refreshPlaylist();
 
+    void onDrawerItemSelected(int pos);
+
+    void spotifyAuthenticationResult(int requestCode, int resultCode, Intent intent);
 }

@@ -23,11 +23,9 @@ import kaaes.spotify.webapi.android.models.Track;
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHolder> {
 
     private final List<Track> mItems = new ArrayList<>();
-    private final List<String> mItemIds = new ArrayList<>();
     private final Context mContext;
     private final ItemSelectedListener mListener;
     private final boolean mIsPlaylist;
-
 
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -43,7 +41,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             subtitle = (TextView) itemView.findViewById(R.id.entity_subtitle);
             image = (ImageView) itemView.findViewById(R.id.entity_image);
             addButton = (Button) itemView.findViewById(R.id.addbutton);
-            if(addButton != null) addButton.setVisibility(View.GONE);
+            if (addButton != null) addButton.setVisibility(View.GONE);
             itemView.setOnClickListener(this);
         }
 
@@ -71,38 +69,41 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
     public void addData(List<Track> items) {
         mItems.addAll(items);
         notifyDataSetChanged();
-        for(Track track : items)
-            mItemIds.add(track.id);
     }
 
     public void addSingleData(Track items) {
         mItems.add(items);
-        mItemIds.add(items.id);
         notifyDataSetChanged();
     }
 
-    public void removeSingleData(int pos){
-        if(mItems.size() > 0) {
+    public void removeSingleData(int pos) {
+        if (mItems.size() > 0) {
             mItems.remove(pos);
-            mItemIds.remove(pos);
             notifyDataSetChanged();
         }
     }
 
-    public Track getTrackAt(int pos){
-        if(mItems.size() == 0) return null;
+    public void removeSingleData(Track track) {
+        if (mItems.contains(track)) mItems.remove(track);
+        notifyDataSetChanged();
+
+    }
+
+    public Track getTrackAt(int pos) {
+        if (mItems.size() == 0) return null;
         return mItems.get(pos);
     }
 
-    public List<String> getTrackIds(){
-        return mItemIds;
+    public List<Track> getTracks() {
+        return mItems;
     }
 
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
-        if(mIsPlaylist) v = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlist_item, parent, false);
+        if (mIsPlaylist)
+            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlist_item, parent, false);
         else {
             v = LayoutInflater.from(parent.getContext()).inflate(R.layout.session_que_list_item, parent, false);
             Button b = (Button) v.findViewById(R.id.addbutton);
@@ -122,9 +123,11 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
 
         holder.subtitle.setText(names.toString());
 
-        Image image = item.album.images.get(0);
-        if (image != null) {
-            Glide.with(mContext).load(image.url).into(holder.image);
+        if(item.album.images.size() > 0) {
+            Image image = item.album.images.get(0);
+            if (image != null) {
+                Glide.with(mContext).load(image.url).skipMemoryCache(true).into(holder.image);
+            }
         }
 
 //        if(holder.addButton != null) {
