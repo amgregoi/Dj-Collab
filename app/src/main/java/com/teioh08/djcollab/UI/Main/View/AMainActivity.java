@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import com.crashlytics.android.Crashlytics;
 import com.teioh08.djcollab.UI.Main.Presenters.AMainPresenter;
 import com.teioh08.djcollab.UI.Main.Presenters.AMainPresenterImpl;
 import com.teioh08.djcollab.UI.Main.View.Mappers.AMainMapper;
@@ -16,6 +17,7 @@ import com.teioh08.djcollab.Utils.CredentialsHandler;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.fabric.sdk.android.Fabric;
 
 public class AMainActivity extends AppCompatActivity implements AMainMapper {
     public static final String TAG = AMainActivity.class.getSimpleName();
@@ -26,6 +28,7 @@ public class AMainActivity extends AppCompatActivity implements AMainMapper {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 

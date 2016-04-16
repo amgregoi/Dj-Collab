@@ -3,4 +3,5 @@
 	<string name="action_settings">Settings</string>
 
 	<string name="SessionListHolder">1</string>
+	<string name="PREF_SPOTIFY_USERNAME">PREF_SPOTIFY_USERNAME</string>
 </resources>

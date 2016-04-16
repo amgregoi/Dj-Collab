@@ -12,6 +12,7 @@ import com.teioh08.djcollab.Widgets.ResultListScrollListener;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
 
 import java.util.List;
+import java.util.Map;
 
 import kaaes.spotify.webapi.android.models.Track;
 
@@ -36,5 +37,8 @@ public interface SessionActivityMap {
     void openPlaylistFragment(String playlist, String userid, String playlistName);
 
     void setToolbartitle(String title);
+
+    void setupDrawerLayout(List<String> mDrawerItems, Map<String, List<String>> mSourceCollections);
+
 
 }

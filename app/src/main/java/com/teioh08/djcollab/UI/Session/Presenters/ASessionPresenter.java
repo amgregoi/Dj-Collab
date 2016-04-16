@@ -10,6 +10,9 @@ import android.view.MenuItem;
 import com.teioh08.djcollab.UI.Maps.LifeCycleMapper;
 import com.teioh08.djcollab.Utils.Player.PlayerInt;
 
+import java.util.List;
+import java.util.Map;
+
 
 public interface ASessionPresenter extends PlayerInt, LifeCycleMapper {
 
@@ -19,13 +22,16 @@ public interface ASessionPresenter extends PlayerInt, LifeCycleMapper {
 
     void onConfigurationChanged(Configuration newConfig);
 
-    boolean onOptionsSelected(MenuItem item);
-
     void removeTrack(int pos);
 
     void refreshPlaylist();
 
-    void onDrawerItemSelected(int pos);
 
     void spotifyAuthenticationResult(int requestCode, int resultCode, Intent intent);
+
+    void onDrawerItemChosen(int pos);
+
+    void onPlaylistChosen(int pos);
+
+
 }

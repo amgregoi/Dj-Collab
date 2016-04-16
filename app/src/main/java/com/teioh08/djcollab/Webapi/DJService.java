@@ -31,5 +31,8 @@ public interface DJService {
 
     @GET("/api/v1/party/{partyId}")
     void getParty(@Path("partyId") int partyid, Callback<Party> callback);
+
+    @POST("/api/v1/host/{hostId}/{partyId}")
+    void requestPartyHost(@Path("hostId") int hostid, @Path("partyId") int partyid, Callback<Void> callback);
 }
 

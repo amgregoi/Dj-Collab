@@ -11,8 +11,9 @@
 		android:layout_height="wrap_content"
 		android:layout_marginEnd="@dimen/baseline_content_unit"
 		android:layout_marginLeft="@dimen/baseline_content_left"
-		android:layout_marginRight="@dimen/baseline_content_unit"
+		android:layout_marginRight="@dimen/baseline_content_unit_16dp"
 		android:layout_marginStart="@dimen/baseline_content_left"
+		android:layout_marginTop="@dimen/baseline_content_unit_16dp"
 		>
 
 		<TextView

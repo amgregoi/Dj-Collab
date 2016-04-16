@@ -11,17 +11,12 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.commonsware.cwac.merge.MergeAdapter;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
@@ -36,6 +31,7 @@ import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.Spotify;
 import com.teioh08.djcollab.UI.Session.Views.ASessionActivity;
 import com.teioh08.djcollab.Utils.CredentialsHandler;
+import com.teioh08.djcollab.Utils.SharedPrefsUtil;
 import com.teioh08.djcollab.Webapi.DJApi;
 import com.teioh08.djcollab.Models.Party;
 import com.teioh08.djcollab.Utils.Player.PlayerInt;
@@ -46,7 +42,9 @@ import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
 import com.teioh08.djcollab.Webapi.ExtraSpotifyApi;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -82,18 +80,14 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     //Host Variables
     private WebSocket ws;
     private Player mMediaPlayer;
-    private boolean mIsPlaying, isFirst;
+    private boolean mIsPlaying;
     private String mCurrentTrack = "";
     private boolean mIsPartyHost;
     private String mAccessToken;
 
-    //merge adapter fields (left drawer)
-    private MergeAdapter mDrawerMergeAdapter;
-    private List<String> baseGeneralList;
-    private List<String> baseUserPlaylistNames;
+
     private List<PlaylistSimple> baseUserPlaylists;
 
-    //Service Connection
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -118,9 +112,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
 
         mSessionActivityMap.setToolbartitle(mParty.getName());
 
-        //Setup Spotify api/service
         SpotifyApi spotifyApi = new SpotifyApi();
-        spotifyApi.setAccessToken(mAccessToken);
 
         if (mAccessToken != null) spotifyApi.setAccessToken(mAccessToken);
         else logError("No valid access token");
@@ -136,7 +128,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
 
                 @Override
                 public void run() {
-                    new MyTask().execute();
+                    new RefreshPlayListTask().execute();
                 }
 
             };
@@ -146,8 +138,12 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
         }
         setupPlaylistView();
         refreshPlaylist();
-        setupMergeAdapter();
+        setupDrawerLayouts();
+        setupPlayer();
 
+    }
+
+    private void setupPlayer(){
         // Check if result comes from the correct activity
         Config playerConfig = new Config(mSessionActivityMap.getContext(), mAccessToken, "d5a5ea60d29c4c75adde4bf2efadd8e4");
         mMediaPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
@@ -221,16 +217,32 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     }
 
     @Override
-    public boolean onOptionsSelected(MenuItem item) {
-        return mDrawerToggle.onOptionsItemSelected(item);
+    public void spotifyAuthenticationResult(int requestCode, int resultCode, Intent intent) {
+        // Check if result comes from the correct activity
+        if (requestCode == CredentialsHandler.REQUEST_CODE) {
+            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
+            switch (response.getType()) {
+                case TOKEN:
+                    logMessage("Got token: " + response.getAccessToken());
+                    CredentialsHandler.setToken(mSessionActivityMap.getContext(), response.getAccessToken(), response.getExpiresIn(), TimeUnit.SECONDS);
+                    SpotifyApi spotifyApi = new SpotifyApi();
+                    mAccessToken = response.getAccessToken();
+                    spotifyApi.setAccessToken(mAccessToken);
+                    mSpotifyService = spotifyApi.getService();
+                    setupDrawerLayouts();
+                    break;
+                case ERROR:
+                    logError("Auth error: " + response.getError());
+                    break;
+                default:
+                    logError("Auth result: " + response.getType());
+            }
+        }
     }
 
     @Override
-    public void onDrawerItemSelected(int pos) {
-        int OFFSET = 5;
-        if (pos >= OFFSET) {
-            mSessionActivityMap.openPlaylistFragment(baseUserPlaylists.get(pos - OFFSET).id, mPrivateUser.id, baseUserPlaylistNames.get(pos-OFFSET));
-        } else if (pos == 2) {
+    public void onDrawerItemChosen(int pos) {
+        if (pos == 0) {
             if (mAccessToken == null) { // login
                 final AuthenticationRequest request = new AuthenticationRequest.Builder(CredentialsHandler.CLIENT_ID, AuthenticationResponse.Type.TOKEN, CredentialsHandler.REDIRECT_URI)
                         .setScopes(new String[]{"playlist-read", "user-library-read", "playlist-read-private", "user-read-private", "user-library-modify", "user-read-private"})
@@ -240,28 +252,31 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
             } else {
                 toastMessage("Already logged in!");
             }
-        }else if(pos == 3){
-            // TODO: request host
+        } else if (pos == 1) {
+            if (mSessionActivityMap.getContext() != null) {
+                DJApi.get().requestPartyHost(mParty.getHostId(), mParty.getId(), new Callback<Void>() {
+                    @Override
+                    public void success(Void aVoid, Response response) {
+//                        mIsPartyHost = true;
+//                        setupSocketConnection();
+//                        setupPlayer();
+                        toastMessage("Not yet implemented");
+
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Log.e(TAG, "failed to take host");
+                        toastMessage("Not yet implemented");
+                    }
+                });
+            }
         }
     }
 
     @Override
-    public void spotifyAuthenticationResult(int requestCode, int resultCode, Intent intent) {
-        // Check if result comes from the correct activity
-        if (requestCode == CredentialsHandler.REQUEST_CODE) {
-            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-            switch (response.getType()) {
-                case TOKEN:
-                    logMessage("Got token: " + response.getAccessToken());
-                    CredentialsHandler.setToken(mSessionActivityMap.getContext(), response.getAccessToken(), response.getExpiresIn(), TimeUnit.SECONDS);
-                    break;
-                case ERROR:
-                    logError("Auth error: " + response.getError());
-                    break;
-                default:
-                    logError("Auth result: " + response.getType());
-            }
-        }
+    public void onPlaylistChosen(int pos) {
+        mSessionActivityMap.openPlaylistFragment(baseUserPlaylists.get(pos).id, mPrivateUser.id, baseUserPlaylists.get(pos).name);
     }
 
     @Override
@@ -321,8 +336,6 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     private void setupPlaylistView() {
         mPlayListAdapter = new SongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> ASessionPresenterImpl.this.temp(), true);
         LinearLayoutManager mLayoutManager2 = new LinearLayoutManager(mSessionActivityMap.getContext());
-//        mPlaylistPager = new PlaylistPager(mSpotifyService);
-//        mPlaylistScrollListener = new PlayListScrollListener(mLayoutManager2, mPlaylistPager, mPlaySearchCompleteListener);
         mSessionActivityMap.setupPlaylistRecyclerView(mPlayListAdapter, mLayoutManager2, null);
     }
 
@@ -406,11 +419,9 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
         }
     }
 
-    class MyTask extends AsyncTask<Void, Void, Void> {
+    class RefreshPlayListTask extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... params) {
-            // get data from web service
-            // insert data in database
             return null;
         }
 
@@ -421,77 +432,62 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
         }
     }
 
-    private void setupMergeAdapter() {
-        //init merge adapter
-        mDrawerMergeAdapter = new MergeAdapter();
 
-        //inflate views
-        View header = ((AppCompatActivity) mSessionActivityMap.getContext()).getLayoutInflater().inflate(R.layout.drawer_header, null);
-        View general = ((AppCompatActivity) mSessionActivityMap.getContext()).getLayoutInflater().inflate(R.layout.drawer_general_header, null);
-        View source = ((AppCompatActivity) mSessionActivityMap.getContext()).getLayoutInflater().inflate(R.layout.drawer_source_header, null);
+    private void setupDrawerLayouts() {
+        if(mPrivateUser == null) {
+            mSpotifyService.getMe(new Callback<UserPrivate>() {
+                @Override
+                public void success(UserPrivate user, Response response) {
+                    SharedPrefsUtil.setSpotifyUsername(user.id);
+                    mPrivateUser = user;            // used later to determine if user is premium or free
+                    buildDrawerItems();
+                }
 
-        //init header fields
-        TextView username = (TextView) header.findViewById(R.id.drawer_username);
-        TextView userEmail = (TextView) header.findViewById(R.id.drawer_email);
+                @Override
+                public void failure(RetrofitError error) {
+                    buildDrawerItems();
+                }
+            });
+        }else{
+            buildDrawerItems();
+        }
+    }
 
-        //init adapter lists
-        baseGeneralList = new ArrayList<>();
+    private void buildDrawerItems(){
+        List<String> mDrawerItems = new ArrayList<>();
+        mDrawerItems.add("Login to Spotify");
+        mDrawerItems.add("Request Host");
         baseUserPlaylists = new ArrayList<>();
-        baseUserPlaylistNames = new ArrayList<>();
-
-        //init adapters
-        ArrayAdapter<String> generalListAdapter = new ArrayAdapter<String>(mSessionActivityMap.getContext(), android.R.layout.simple_list_item_1, baseGeneralList);
-        ArrayAdapter<String> userPlaylistAdapter = new ArrayAdapter<String>(mSessionActivityMap.getContext(), android.R.layout.simple_list_item_1, baseUserPlaylistNames);
-
-        //fill general options list
-        baseGeneralList.add("Login to Spotify");
-        baseGeneralList.add("Request Host");
-        generalListAdapter.notifyDataSetChanged();
-
-        //gets user profile, if logged in
-        mSpotifyService.getMe(new Callback<UserPrivate>() {
-            @Override
-            public void success(UserPrivate user, Response response) {
-                username.setText(user.id);
-                userEmail.setText(user.email);  //email requires special scope "user-read-private"
-                mPrivateUser = user;            // used later to determine if user is premium or free
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                username.setText("No user available");
-            }
-        });
-
 
         ExtraSpotifyApi.get().getUserPlaylists("Bearer " + mAccessToken, new SpotifyCallback<Pager<PlaylistSimple>>() {
             @Override
             public void success(Pager<PlaylistSimple> pager, Response response) {
                 for (PlaylistSimple pl : pager.items) {
                     baseUserPlaylists.add(pl);
-                    baseUserPlaylistNames.add(pl.name);
                 }
-                userPlaylistAdapter.notifyDataSetChanged();
-                mDrawerMergeAdapter.addView(header);
-                mDrawerMergeAdapter.addView(general);
-                mDrawerMergeAdapter.addAdapter(generalListAdapter);
-                mDrawerMergeAdapter.addView(source);
-                mDrawerMergeAdapter.addAdapter(userPlaylistAdapter);
-                mSessionActivityMap.setupDrawerAdapter(mDrawerMergeAdapter);
+
+                mDrawerItems.add("Playlists");
+                Map<String, List<String>> mSourceCollections = new LinkedHashMap<>();
+                for (String item : mDrawerItems) {
+                    List<String> mDrawerChildren = new ArrayList<>();
+                    if (item.equals("Playlists")) {
+                        for (PlaylistSimple p : pager.items)
+                            mDrawerChildren.add(p.name);
+                    }
+                    mSourceCollections.put(item, mDrawerChildren);
+                }
+                mSessionActivityMap.setupDrawerLayout(mDrawerItems, mSourceCollections);
+
             }
 
             @Override
             public void failure(SpotifyError error) {
                 System.out.println("test");
-                mDrawerMergeAdapter.addView(header);
-                mDrawerMergeAdapter.addView(general);
-                mDrawerMergeAdapter.addAdapter(generalListAdapter);
-                mSessionActivityMap.setupDrawerAdapter(mDrawerMergeAdapter);
+                Map<String, List<String>> mSourceCollections = new LinkedHashMap<>();
+                mSessionActivityMap.setupDrawerLayout(mDrawerItems, mSourceCollections);
             }
 
         });
-
-
     }
 
 

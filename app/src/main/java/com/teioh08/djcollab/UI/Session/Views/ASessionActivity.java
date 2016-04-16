@@ -11,20 +11,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.widget.ListView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ExpandableListView;
 import android.widget.TextView;
 
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.teioh08.djcollab.Models.Party;
+import com.teioh08.djcollab.UI.Session.Adapters.ExpandableListAdapter;
 import com.teioh08.djcollab.UI.Session.Views.Fragments.FPlaylistFragment;
 import com.teioh08.djcollab.UI.Session.Views.Fragments.FSearchTrackFragment;
 import com.teioh08.djcollab.UI.Session.Views.Maps.SessionActivityMap;
 import com.teioh08.djcollab.R;
-import com.teioh08.djcollab.Utils.CredentialsHandler;
+import com.teioh08.djcollab.Utils.SharedPrefsUtil;
 import com.teioh08.djcollab.Widgets.PlayListScrollListener;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
 import com.teioh08.djcollab.UI.Session.Presenters.ASessionPresenter;
 import com.teioh08.djcollab.UI.Session.Presenters.ASessionPresenterImpl;
+
+import java.util.List;
+import java.util.Map;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -42,10 +48,13 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
     @Bind(R.id.drawer_layout) DrawerLayout mDrawerLayout;
     @Bind(R.id.session_playlist) RecyclerView mPlayList;
     @Bind(R.id.toolbar) Toolbar mToolBar;
-    @Bind(R.id.drawer_layout_list) ListView mDrawerLayoutList;
+    @Bind(R.id.drawer_layout_list) ExpandableListView mDrawerList;
     @Bind(R.id.activityTitle) TextView mActivityTitle;
 
-    public static Intent constructSessionActivityIntent(Context context, Party party, boolean isHost){
+    private View mDrawerHeader;
+    private ExpandableListAdapter adapter;
+
+    public static Intent constructSessionActivityIntent(Context context, Party party, boolean isHost) {
         Intent argumentIntent = new Intent(context, ASessionActivity.class);
         argumentIntent.putExtra(PARTY_ARGUMENT_KEY, party);
         argumentIntent.putExtra(ISHOST_ARGUMENT_KEY, isHost);
@@ -137,7 +146,7 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
 
     @Override
     public void setupDrawerAdapter(MergeAdapter mDrawerAdapter) {
-        mDrawerLayoutList.setAdapter(mDrawerAdapter);
+        mDrawerList.setAdapter(mDrawerAdapter);
     }
 
     @Override
@@ -153,7 +162,7 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
     }
 
     @OnClick(R.id.add_song_button)
-    void onAddSongButtonClick(){
+    void onAddSongButtonClick() {
         Fragment search = new FSearchTrackFragment();
         Bundle bundle = getIntent().getExtras();
         search.setArguments(bundle);
@@ -161,13 +170,8 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
 
     }
 
-    @OnItemClick(R.id.drawer_layout_list)
-    void onDrawerItemClick(int position){
-        mASessionPresenter.onDrawerItemSelected(position);
-    }
-
     @Override
-    public void setToolbartitle(String title){
+    public void setToolbartitle(String title) {
         mActivityTitle.setText(title);
     }
 
@@ -175,6 +179,33 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
         mASessionPresenter.spotifyAuthenticationResult(requestCode, resultCode, intent);
+    }
+
+
+    @Override
+    public void setupDrawerLayout(List<String> mDrawerItems, Map<String, List<String>> mSourceCollections) {
+        adapter = new ExpandableListAdapter(this, mDrawerItems, mSourceCollections);
+        if (mDrawerHeader != null)
+            mDrawerList.removeHeaderView(mDrawerHeader);
+
+        mDrawerHeader = LayoutInflater.from(getContext()).inflate(R.layout.drawer_header, null);
+        TextView username = (TextView) mDrawerHeader.findViewById(R.id.drawer_username);
+        username.setText(SharedPrefsUtil.getSpotifyUsername());
+
+        mDrawerList.addHeaderView(mDrawerHeader);
+        mDrawerList.setAdapter(adapter);
+
+        mDrawerList.setOnGroupClickListener((parent, v, groupPosition, id) -> {
+            mASessionPresenter.onDrawerItemChosen(groupPosition);
+            return false;
+        });
+
+        mDrawerList.setOnChildClickListener((parent, v, groupPosition, childPosition, id) -> {
+            mASessionPresenter.onPlaylistChosen(childPosition);
+            return true;
+        });
+
+//        mDrawerHeader.setOnClickListener(v -> mMainPresenter.onSignIn());
     }
 
 }
