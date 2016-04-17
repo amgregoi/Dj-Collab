@@ -198,8 +198,6 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
             mASessionPresenter.onPlaylistChosen(childPosition);
             return true;
         });
-
-//        mDrawerHeader.setOnClickListener(v -> mMainPresenter.onSignIn());
     }
 
 }

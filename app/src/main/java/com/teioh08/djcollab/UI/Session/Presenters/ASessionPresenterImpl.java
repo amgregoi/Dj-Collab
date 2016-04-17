@@ -25,11 +25,9 @@ import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
-import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Player;
-import com.spotify.sdk.android.player.PlayerNotificationCallback;
-import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.Spotify;
+import com.teioh08.djcollab.UI.Session.DJPlayer;
 import com.teioh08.djcollab.UI.Session.Views.ASessionActivity;
 import com.teioh08.djcollab.Utils.CredentialsHandler;
 import com.teioh08.djcollab.Utils.SharedPrefsUtil;
@@ -67,7 +65,7 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificationCallback, ConnectionStateCallback {
+public class ASessionPresenterImpl implements ASessionPresenter {
     private static final String TAG = ASessionPresenterImpl.class.getSimpleName();
     private SessionActivityMap mSessionActivityMap;
 
@@ -75,20 +73,17 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     private SongListAdapter mPlayListAdapter;
     private SpotifyService mSpotifyService;
     private Party mParty;
-    private PlayerInt mPlayerInt;
     private UserPrivate mPrivateUser;
+    private List<PlaylistSimple> baseUserPlaylists;
 
     //Host Variables
     private WebSocket ws;
-    private Player mMediaPlayer;
-    private boolean mIsPlaying;
-    private String mCurrentTrack = "";
     private boolean mIsPartyHost;
+    private DJPlayer mPlayer;
 
-
-    private List<PlaylistSimple> baseUserPlaylists;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
+        private PlayerInt mPlayerInt;
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mPlayerInt = ((PreviewService.PlayerBinder) service).getService();
@@ -146,18 +141,16 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     private void setupPlayer() {
         Config playerConfig = new Config(mSessionActivityMap.getContext(), CredentialsHandler.getToken(), CredentialsHandler.CLIENT_ID, Config.DeviceType.SMARTPHONE);
 
-//        mMediaPlayer = new Player.Builder(playerConfig).build(new Player.InitializationObserver() {
-        mMediaPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
+        Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
             @Override
             public void onInitialized(Player player) {
-                mMediaPlayer = player;
-                mMediaPlayer.addConnectionStateCallback(ASessionPresenterImpl.this);
-                mMediaPlayer.addPlayerNotificationCallback(ASessionPresenterImpl.this);
+                mPlayer = new DJPlayer(player);
             }
 
             @Override
             public void onError(Throwable throwable) {
                 Log.e(TAG, "Could not initialize player: " + throwable.getMessage());
+                mPlayer = new DJPlayer();
             }
         });
     }
@@ -175,13 +168,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     @Override
     public void onDestroy() {
         mSessionActivityMap.getContext().unbindService(mServiceConnection);
-        mMediaPlayer.pause();
-        mMediaPlayer.logout();
-        mMediaPlayer.shutdown();
-        try {
-            Spotify.awaitDestroyPlayer(mMediaPlayer, 5000L, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-        }
+        mPlayer.shutdown();
     }
 
     @Override
@@ -234,12 +221,9 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
                     break;
                 case ERROR:
                     logError("Auth error: " + response.getError());
-//                    toastMessage("Auth error: " + response.getError());
-
                     break;
                 default:
                     logError("Auth result: " + response.getType());
-//                    toastMessage("Auth result: " + response.getType());
             }
         }
     }
@@ -286,7 +270,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     @Override
     public void removeTrack(int pos) {
         if (mPlayListAdapter.getItemCount() > pos) {
-            mQueueTracks.remove(0);
+            mPlayer.removeTrack(0);
             DJApi.get().removeTrackFromParty(mParty.getId(), mPlayListAdapter.getTrackAt(pos).id, new Callback<Void>() {
                 @Override
                 public void success(Void aVoid, Response response) {
@@ -319,6 +303,52 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
         }
     }
 
+    @Override
+    public void queueTrack(String url) {
+        mSpotifyService.getTrack(url, new Callback<Track>() {
+            @Override
+            public void success(Track track, Response response) {
+                mPlayer.queueTrack(track);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.d(TAG, error.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void playlist(List<String> url) {
+        mPlayer.playlist(url);
+    }
+
+    @Override
+    public void pause() {
+        mPlayer.pause();
+    }
+
+    @Override
+    public void resume() {
+        mPlayer.resume();
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mPlayer.isPlaying();
+    }
+
+    @Nullable
+    @Override
+    public String getCurrentTrack() {
+        return mPlayer.getCurrentTrack();
+    }
+
+    @Override
+    public void release() {
+        mPlayer.release();
+    }
+
     private void logError(String msg) {
 //        Toast.makeText(mSessionActivityMap.getContext(), "Error: " + msg, Toast.LENGTH_SHORT).show();
         Log.e(TAG, msg);
@@ -334,11 +364,12 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
 
     }
 
-    private void temp() {
+    private void nonHostItemSelect() {
+        toastMessage("Song added to queue");
     }
 
     private void setupPlaylistView() {
-        mPlayListAdapter = new SongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> ASessionPresenterImpl.this.temp(), true);
+        mPlayListAdapter = new SongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> ASessionPresenterImpl.this.nonHostItemSelect(), true);
         LinearLayoutManager mLayoutManager2 = new LinearLayoutManager(mSessionActivityMap.getContext());
         mSessionActivityMap.setupPlaylistRecyclerView(mPlayListAdapter, mLayoutManager2, null);
     }
@@ -348,7 +379,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
         for (String id : mParty.getSongList())
             query += id + ",";
 
-        if (query.contains(",")) query = query.substring(0, query.length() - 1);
+        if (query.length() > 0) query = query.substring(0, query.length() - 1); //removes last comma
 
         mSpotifyService.getTracks(query, new SpotifyCallback<Tracks>() {
             @Override
@@ -435,7 +466,6 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
         }
     }
 
-
     private void setupDrawerLayouts() {
         if (mPrivateUser == null) {
             mSpotifyService.getMe(new Callback<UserPrivate>() {
@@ -448,10 +478,11 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
 
                 @Override
                 public void failure(RetrofitError error) {
+                    SharedPrefsUtil.setSpotifyUsername(null);
                     buildDrawerItems();
                 }
             });
-        } else {
+        }else{
             buildDrawerItems();
         }
     }
@@ -461,7 +492,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
         mDrawerItems.add("Login to Spotify");
         mDrawerItems.add("Request Host");
         baseUserPlaylists = new ArrayList<>();
-
+        mSessionActivityMap.setupDrawerLayout(mDrawerItems, new LinkedHashMap<>()); //setup initial
         ExtraSpotifyApi.get().getUserPlaylists("Bearer " + CredentialsHandler.getToken(), new SpotifyCallback<Pager<PlaylistSimple>>() {
             @Override
             public void success(Pager<PlaylistSimple> pager, Response response) {
@@ -485,149 +516,12 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
 
             @Override
             public void failure(SpotifyError error) {
-                System.out.println("test");
-                Map<String, List<String>> mSourceCollections = new LinkedHashMap<>();
-                mSessionActivityMap.setupDrawerLayout(mDrawerItems, mSourceCollections);
+                Log.d(TAG, "No user logged in");
+//                Map<String, List<String>> mSourceCollections = new LinkedHashMap<>();
+//                mSessionActivityMap.setupDrawerLayout(mDrawerItems, mSourceCollections);
             }
 
         });
-    }
-
-
-
-
-
-    /*
-    *
-    *
-    *
-    *
-    *               media player
-    *
-    *
-    *
-     */
-
-    List<Track> mQueueTracks = new ArrayList<>();
-
-    @Override
-    public void queueTrack(String url) {
-        if (mMediaPlayer != null) {
-            mSpotifyService.getTrack(url, new Callback<Track>() {
-                @Override
-                public void success(Track track, Response response) {
-                    if (mQueueTracks.size() == 0) {
-                        mMediaPlayer.play(track.uri);
-//                        mCurrentTrack = track.uri;
-                    }
-                    mQueueTracks.add(track);
-                }
-
-                @Override
-                public void failure(RetrofitError error) {
-                    //failed
-                }
-            });
-        }
-    }
-
-    @Override
-    public void playlist(List<String> url) {
-        if (mMediaPlayer != null) {
-            for (String s : url) {
-                mMediaPlayer.queue(s);
-            }
-        }
-    }
-
-    @Override
-    public void pause() {
-        Log.d(TAG, "Pause");
-        if (mMediaPlayer != null) {
-            mMediaPlayer.pause();
-        }
-    }
-
-    @Override
-    public void release() {
-        if (mMediaPlayer != null) {
-            mMediaPlayer.shutdown();
-            mMediaPlayer = null;
-        }
-        mIsPlaying = false;
-        mCurrentTrack = "";
-    }
-
-    @Override
-    public void resume() {
-        Log.d(TAG, "Resume");
-        if (mMediaPlayer != null) {
-            mMediaPlayer.resume();
-        }
-    }
-
-    @Override
-    public boolean isPlaying() {
-        return mMediaPlayer != null && mIsPlaying;
-    }
-
-    @Override
-    public void onLoggedIn() {
-        logError("Player logged in");
-    }
-
-    @Override
-    public void onLoggedOut() {
-
-    }
-
-    @Override
-    public void onLoginFailed(Throwable error) {
-        Log.d("MainActivity", "Login failed");
-        toastMessage(error.getMessage());
-        logError(error.getMessage());
-    }
-
-    @Override
-    public void onTemporaryError() {
-
-    }
-
-    @Override
-    public void onConnectionMessage(String s) {
-        toastMessage(s);
-        logError(s);
-    }
-
-    @Override
-    @Nullable
-    public String getCurrentTrack() {
-        return mCurrentTrack;
-    }
-
-    @Override
-    public void onPlaybackEvent(EventType type, PlayerState state) {
-        logError(TAG + " : " + type.name());
-        if (type == EventType.TRACK_START) {
-            mIsPlaying = true;
-        } else if (type == EventType.TRACK_END) {
-            mIsPlaying = false;
-        } else if (type == EventType.END_OF_CONTEXT) {
-            mCurrentTrack = state.trackUri;
-            if (!mCurrentTrack.equals("")) {
-                removeTrack(0);
-                if (mQueueTracks.size() > 0) {
-                    mMediaPlayer.play(mQueueTracks.get(0).uri);
-                    mCurrentTrack = mQueueTracks.get(0).uri;
-                } else mCurrentTrack = "";
-            }
-//            isFirst = false;
-        }
-    }
-
-    @Override
-    public void onPlaybackError(ErrorType type, String s) {
-
     }
 }
 
