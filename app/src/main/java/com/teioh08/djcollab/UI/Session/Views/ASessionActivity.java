@@ -16,7 +16,6 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
-import com.commonsware.cwac.merge.MergeAdapter;
 import com.teioh08.djcollab.Models.Party;
 import com.teioh08.djcollab.UI.Session.Adapters.ExpandableListAdapter;
 import com.teioh08.djcollab.UI.Session.Views.Fragments.FPlaylistFragment;
@@ -142,11 +141,6 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
     @Override
     public void addSongQueue(Track track) {
         mASessionPresenter.queueTrack(track.uri);
-    }
-
-    @Override
-    public void setupDrawerAdapter(MergeAdapter mDrawerAdapter) {
-        mDrawerList.setAdapter(mDrawerAdapter);
     }
 
     @Override

@@ -56,6 +56,7 @@ public class FHostPresenterImpl implements FHostPresenter {
 
     @Override
     public void createPartyButtonClick(String name) {
+        name = name.replaceAll("\n", "");
         if(name.length() > 0) {
             DJApi.get().createHostSession(name, new Callback<Party>() {
                 @Override

@@ -3,12 +3,8 @@ package com.teioh08.djcollab.UI.Session.Views.Maps;
 import android.content.Context;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
-import android.widget.SearchView;
 
-import com.commonsware.cwac.merge.MergeAdapter;
-import com.teioh08.djcollab.Utils.Player.PlayerInt;
 import com.teioh08.djcollab.Widgets.PlayListScrollListener;
-import com.teioh08.djcollab.Widgets.ResultListScrollListener;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
 
 import java.util.List;
@@ -31,8 +27,6 @@ public interface SessionActivityMap {
     void closeDrawer();
 
     void addSongQueue(Track track);
-
-    void setupDrawerAdapter(MergeAdapter mDrawerAdapter);
 
     void openPlaylistFragment(String playlist, String userid, String playlistName);
 

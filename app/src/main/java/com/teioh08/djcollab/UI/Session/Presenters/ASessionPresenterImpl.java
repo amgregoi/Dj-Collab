@@ -25,6 +25,7 @@ import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
+import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
@@ -66,7 +67,7 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificationCallback {
+public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificationCallback, ConnectionStateCallback {
     private static final String TAG = ASessionPresenterImpl.class.getSimpleName();
     private SessionActivityMap mSessionActivityMap;
 
@@ -83,7 +84,6 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     private boolean mIsPlaying;
     private String mCurrentTrack = "";
     private boolean mIsPartyHost;
-    private String mAccessToken;
 
 
     private List<PlaylistSimple> baseUserPlaylists;
@@ -108,13 +108,13 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     public void init(Bundle bundle) {
         mParty = bundle.getParcelable(ASessionActivity.PARTY_ARGUMENT_KEY);
         mIsPartyHost = bundle.getBoolean(ASessionActivity.ISHOST_ARGUMENT_KEY);
-        mAccessToken = CredentialsHandler.getToken(mSessionActivityMap.getContext());
 
         mSessionActivityMap.setToolbartitle(mParty.getName());
 
         SpotifyApi spotifyApi = new SpotifyApi();
 
-        if (mAccessToken != null) spotifyApi.setAccessToken(mAccessToken);
+        if (CredentialsHandler.getToken() != null)
+            spotifyApi.setAccessToken(CredentialsHandler.getToken());
         else logError("No valid access token");
         mSpotifyService = spotifyApi.getService();
         mSessionActivityMap.getContext().bindService(PreviewService.getIntent(mSessionActivityMap.getContext()), mServiceConnection, Activity.BIND_AUTO_CREATE);
@@ -143,19 +143,21 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
 
     }
 
-    private void setupPlayer(){
-        // Check if result comes from the correct activity
-        Config playerConfig = new Config(mSessionActivityMap.getContext(), mAccessToken, "d5a5ea60d29c4c75adde4bf2efadd8e4");
+    private void setupPlayer() {
+        Config playerConfig = new Config(mSessionActivityMap.getContext(), CredentialsHandler.getToken(), CredentialsHandler.CLIENT_ID, Config.DeviceType.SMARTPHONE);
+
+//        mMediaPlayer = new Player.Builder(playerConfig).build(new Player.InitializationObserver() {
         mMediaPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
             @Override
             public void onInitialized(Player player) {
                 mMediaPlayer = player;
+                mMediaPlayer.addConnectionStateCallback(ASessionPresenterImpl.this);
                 mMediaPlayer.addPlayerNotificationCallback(ASessionPresenterImpl.this);
             }
 
             @Override
             public void onError(Throwable throwable) {
-                Log.e("AMainActivity", "Could not initialize player: " + throwable.getMessage());
+                Log.e(TAG, "Could not initialize player: " + throwable.getMessage());
             }
         });
     }
@@ -174,6 +176,8 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     public void onDestroy() {
         mSessionActivityMap.getContext().unbindService(mServiceConnection);
         mMediaPlayer.pause();
+        mMediaPlayer.logout();
+        mMediaPlayer.shutdown();
         try {
             Spotify.awaitDestroyPlayer(mMediaPlayer, 5000L, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
@@ -224,18 +228,18 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
             switch (response.getType()) {
                 case TOKEN:
                     logMessage("Got token: " + response.getAccessToken());
-                    CredentialsHandler.setToken(mSessionActivityMap.getContext(), response.getAccessToken(), response.getExpiresIn(), TimeUnit.SECONDS);
-                    SpotifyApi spotifyApi = new SpotifyApi();
-                    mAccessToken = response.getAccessToken();
-                    spotifyApi.setAccessToken(mAccessToken);
-                    mSpotifyService = spotifyApi.getService();
+                    CredentialsHandler.setToken(response.getAccessToken(), response.getExpiresIn(), TimeUnit.SECONDS);
+                    mSpotifyService = new SpotifyApi().setAccessToken(CredentialsHandler.getToken()).getService();
                     setupDrawerLayouts();
                     break;
                 case ERROR:
                     logError("Auth error: " + response.getError());
+//                    toastMessage("Auth error: " + response.getError());
+
                     break;
                 default:
                     logError("Auth result: " + response.getType());
+//                    toastMessage("Auth result: " + response.getType());
             }
         }
     }
@@ -243,7 +247,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     @Override
     public void onDrawerItemChosen(int pos) {
         if (pos == 0) {
-            if (mAccessToken == null) { // login
+            if (CredentialsHandler.getToken() == null) { // login
                 final AuthenticationRequest request = new AuthenticationRequest.Builder(CredentialsHandler.CLIENT_ID, AuthenticationResponse.Type.TOKEN, CredentialsHandler.REDIRECT_URI)
                         .setScopes(new String[]{"playlist-read", "user-library-read", "playlist-read-private", "user-read-private", "user-library-modify", "user-read-private"})
                         .build();
@@ -384,7 +388,6 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
                         Log.e(TAG, "socket message : " + message);
                         String hostid = message.substring(3);
                         mParty.setHostId(Integer.parseInt(hostid));
-
                         DJApi.get().registerHostToParty(mParty.getHostId(), mParty.getId(), new Callback<Void>() {
                             @Override
                             public void success(Void aVoid, retrofit.client.Response response) {
@@ -434,7 +437,7 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
 
 
     private void setupDrawerLayouts() {
-        if(mPrivateUser == null) {
+        if (mPrivateUser == null) {
             mSpotifyService.getMe(new Callback<UserPrivate>() {
                 @Override
                 public void success(UserPrivate user, Response response) {
@@ -448,18 +451,18 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
                     buildDrawerItems();
                 }
             });
-        }else{
+        } else {
             buildDrawerItems();
         }
     }
 
-    private void buildDrawerItems(){
+    private void buildDrawerItems() {
         List<String> mDrawerItems = new ArrayList<>();
         mDrawerItems.add("Login to Spotify");
         mDrawerItems.add("Request Host");
         baseUserPlaylists = new ArrayList<>();
 
-        ExtraSpotifyApi.get().getUserPlaylists("Bearer " + mAccessToken, new SpotifyCallback<Pager<PlaylistSimple>>() {
+        ExtraSpotifyApi.get().getUserPlaylists("Bearer " + CredentialsHandler.getToken(), new SpotifyCallback<Pager<PlaylistSimple>>() {
             @Override
             public void success(Pager<PlaylistSimple> pager, Response response) {
                 for (PlaylistSimple pl : pager.items) {
@@ -566,6 +569,34 @@ public class ASessionPresenterImpl implements ASessionPresenter, PlayerNotificat
     @Override
     public boolean isPlaying() {
         return mMediaPlayer != null && mIsPlaying;
+    }
+
+    @Override
+    public void onLoggedIn() {
+        logError("Player logged in");
+    }
+
+    @Override
+    public void onLoggedOut() {
+
+    }
+
+    @Override
+    public void onLoginFailed(Throwable error) {
+        Log.d("MainActivity", "Login failed");
+        toastMessage(error.getMessage());
+        logError(error.getMessage());
+    }
+
+    @Override
+    public void onTemporaryError() {
+
+    }
+
+    @Override
+    public void onConnectionMessage(String s) {
+        toastMessage(s);
+        logError(s);
     }
 
     @Override

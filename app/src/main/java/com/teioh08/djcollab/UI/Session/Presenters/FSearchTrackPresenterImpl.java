@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.commonsware.cwac.merge.MergeAdapter;
 import com.teioh08.djcollab.Models.Party;
 import com.teioh08.djcollab.R;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;

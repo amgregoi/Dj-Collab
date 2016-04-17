@@ -6,12 +6,19 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.teioh08.spot"
+        applicationId "com.teioh08.djcollab"
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
+
+    //set language level to 8 to use retrolambda
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -87,15 +94,3 @@ repositories {
 apply plugin: 'com.android.application' //or apply plugin: 'java'
 apply plugin: 'me.tatarka.retrolambda'
 //end retrolambda
-
-//merge adapter - test
-repositories {
-    maven {
-        url "https://s3.amazonaws.com/repo.commonsware.com"
-    }
-}
-
-dependencies {
-    compile 'com.commonsware.cwac:merge:1.1.+'
-}
-//end merge adapter

@@ -60,10 +60,10 @@ public class AMainPresenterImpl implements  AMainPresenter{
 
     @Override
     public void spotifyAuthenticate() {
-        String token = CredentialsHandler.getToken(mAMainContext);
+        String token = CredentialsHandler.getToken();
         if (token == null) {
             final AuthenticationRequest request = new AuthenticationRequest.Builder(CredentialsHandler.CLIENT_ID, AuthenticationResponse.Type.TOKEN, CredentialsHandler.REDIRECT_URI)
-                    .setScopes(new String[]{"playlist-read", "user-library-read", "playlist-read-private", "user-read-private", "user-library-modify", "user-read-private"})
+                    .setScopes(new String[]{"playlist-read", "user-library-read", "playlist-read-private", "user-read-private", "user-library-modify", "user-read-private", "streaming"})
                     .build();
 
             AuthenticationClient.openLoginActivity(((AMainActivity)mAMainMap), CredentialsHandler.REQUEST_CODE, request);
@@ -78,7 +78,7 @@ public class AMainPresenterImpl implements  AMainPresenter{
             switch (response.getType()) {
                 case TOKEN:
                     logMessage("Got token: " + response.getAccessToken());
-                    CredentialsHandler.setToken(mAMainContext, response.getAccessToken(), response.getExpiresIn(), TimeUnit.SECONDS);
+                    CredentialsHandler.setToken(response.getAccessToken(), response.getExpiresIn(), TimeUnit.SECONDS);
                     break;
 
                 case ERROR:

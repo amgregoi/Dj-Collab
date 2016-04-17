@@ -57,7 +57,7 @@ public class FPlaylistPresenterImpl implements FPlaylistPresenter {
 
 
         mSpotifyService = new SpotifyApi().getService();
-        mUserPlaylistPager = new UserPlaylistPager(mSpotifyService, userId, partyId, CredentialsHandler.getToken(mFPlaylistMapper.getContext()));
+        mUserPlaylistPager = new UserPlaylistPager(mSpotifyService, userId, partyId, CredentialsHandler.getToken());
         setupSearchSongView();
 
         mFPlaylistMapper.setupToolbarTitle(playlistName);
@@ -137,11 +137,13 @@ public class FPlaylistPresenterImpl implements FPlaylistPresenter {
             @Override
             public void success(Void aVoid, Response response) {
                 //might do something later
+                logError(response.getReason());
             }
 
             @Override
             public void failure(RetrofitError error) {
                 //failed to add, or host failed to recieve socket message (bad token)
+                logError(error.getMessage());
             }
         });
     }
@@ -166,21 +168,11 @@ public class FPlaylistPresenterImpl implements FPlaylistPresenter {
     }
 
     private void logError(String msg) {
-//        Toast.makeText(mSessionActivityMap.getContext(), "Error: " + msg, Toast.LENGTH_SHORT).show();
         Log.e(TAG, msg);
     }
 
     private void logMessage(String msg) {
-//        Toast.makeText(mSessionActivityMap.getContext(), msg, Toast.LENGTH_SHORT).show();
         Log.d(TAG, msg);
     }
-
-
-//preview player
-//            if (currentTrackUrl == null || !currentTrackUrl.equals(previewUrl))
-//                mPlayerInt.queueTrack(previewUrl);
-//            else if (mPlayerInt.isPlaying()) mPlayerInt.pause();
-//            else mPlayerInt.resume();
-
 
 }
