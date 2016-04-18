@@ -7,6 +7,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.teioh08.djcollab.Models.Party;
 import com.teioh08.djcollab.R;
@@ -138,6 +139,7 @@ public class FSearchTrackPresenterImpl implements FSearchTrackPresenter{
 
     @Override //itemclick
     public void selectTrack(Track item) {
+        Toast.makeText(mFSearchTrackMap.getContext(), "Song added to queue", Toast.LENGTH_SHORT).show();
         DJApi.get().addTrackToParty(mParty.getId(), item.id, new retrofit.Callback<Void>() {
             @Override
             public void success(Void aVoid, Response response) {

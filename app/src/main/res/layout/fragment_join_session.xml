@@ -6,7 +6,6 @@
               android:clickable="true"
               android:background="@color/black">
 
-    <include layout="@layout/toolbar2"/>
 
     <ListView
         android:id="@+id/sessionListView"

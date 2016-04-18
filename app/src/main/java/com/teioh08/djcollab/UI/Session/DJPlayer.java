@@ -22,25 +22,34 @@ public class DJPlayer implements PlayerNotificationCallback, ConnectionStateCall
     Player mMediaPlayer;
     private boolean mIsPlaying;
     private String mCurrentTrack = "";
+    PlayerListener mPlayerListener;
 
+    public interface PlayerListener{
+        void removeTrack(int pos);
+    }
 
-    public DJPlayer(Player player) {
+    public DJPlayer(Player player, PlayerListener listener) {
         mMediaPlayer = player;
         mMediaPlayer.addPlayerNotificationCallback(this);
         mMediaPlayer.addConnectionStateCallback(this);
+        mMediaPlayer.clearQueue();
+        mPlayerListener = listener;
     }
 
-    public DJPlayer(){
+    public DJPlayer(PlayerListener listener){
+        mPlayerListener = listener;
     }
 
     public void removeTrack(int pos) {
-        mQueueTracks.remove(pos);
+        mPlayerListener.removeTrack(pos);
+        if(mQueueTracks.size() > pos)
+            mQueueTracks.remove(pos);
     }
 
     public void shutdown() {
         if(mMediaPlayer != null) {
             mMediaPlayer.pause();
-            mMediaPlayer.logout();      //necessary?
+//            mMediaPlayer.logout();      //necessary?
 //            mMediaPlayer.shutdown();    //necessary?
             Spotify.destroyPlayer(mMediaPlayer);
         }

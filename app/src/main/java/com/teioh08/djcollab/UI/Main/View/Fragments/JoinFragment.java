@@ -3,6 +3,7 @@ package com.teioh08.djcollab.UI.Main.View.Fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,5 +73,9 @@ public class JoinFragment extends Fragment implements FJoinMapper{
     @Override
     public void registerAdapter(ArrayAdapter adapter) {
         mSessionList.setAdapter(adapter);
+    }
+
+    @Override
+    public void setupToolBar(){
     }
 }

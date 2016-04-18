@@ -9,4 +9,6 @@ public interface FHostMapper {
 
     Context getContext();
 
+    void setupToolBar();
+
 }

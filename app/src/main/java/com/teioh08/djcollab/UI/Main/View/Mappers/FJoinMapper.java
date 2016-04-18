@@ -11,4 +11,6 @@ public interface FJoinMapper {
 
     void registerAdapter(ArrayAdapter adapter);
 
+    void setupToolBar();
+
 }

@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +16,8 @@ import com.teioh08.djcollab.R;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
 import com.teioh08.djcollab.UI.Session.Presenters.FPlaylistPresenter;
 import com.teioh08.djcollab.UI.Session.Presenters.FPlaylistPresenterImpl;
-import com.teioh08.djcollab.UI.Session.Presenters.FSearchTrackPresenter;
-import com.teioh08.djcollab.UI.Session.Presenters.FSearchTrackPresenterImpl;
 import com.teioh08.djcollab.UI.Session.Views.Maps.FPlaylistMapper;
-import com.teioh08.djcollab.UI.Session.Views.Maps.FSearchTrackMapper;
-import com.teioh08.djcollab.Widgets.PlayListScrollListener;
 import com.teioh08.djcollab.Widgets.PlaylistResultScrollListener;
-import com.teioh08.djcollab.Widgets.ResultListScrollListener;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -34,6 +30,7 @@ public class FPlaylistFragment extends Fragment implements FPlaylistMapper {
     @Bind(R.id.search_song) RecyclerView mSearchTrackView;
     @Bind(R.id.searchView) SearchView mSearchView;
     @Bind(R.id.activityTitle) TextView mActivityTitle;
+    @Bind(R.id.toolbar) Toolbar mToolbar;
 
     FPlaylistPresenter mFPlaylistPresenter;
 
@@ -44,6 +41,15 @@ public class FPlaylistFragment extends Fragment implements FPlaylistMapper {
 
         mFPlaylistPresenter = new FPlaylistPresenterImpl(this);
         mFPlaylistPresenter.init(getArguments());
+
+        mToolbar.setNavigationIcon(R.drawable.ic_back);
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
+
         return searchView;
     }
 

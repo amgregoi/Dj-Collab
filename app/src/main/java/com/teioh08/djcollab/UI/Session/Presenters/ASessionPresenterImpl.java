@@ -82,6 +82,7 @@ public class ASessionPresenterImpl implements ASessionPresenter {
     private DJPlayer mPlayer;
 
 
+
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         private PlayerInt mPlayerInt;
         @Override
@@ -144,13 +145,13 @@ public class ASessionPresenterImpl implements ASessionPresenter {
         Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
             @Override
             public void onInitialized(Player player) {
-                mPlayer = new DJPlayer(player);
+                mPlayer = new DJPlayer(player, ASessionPresenterImpl.this);
             }
 
             @Override
             public void onError(Throwable throwable) {
                 Log.e(TAG, "Could not initialize player: " + throwable.getMessage());
-                mPlayer = new DJPlayer();
+                mPlayer = new DJPlayer(ASessionPresenterImpl.this);
             }
         });
     }
@@ -270,16 +271,17 @@ public class ASessionPresenterImpl implements ASessionPresenter {
     @Override
     public void removeTrack(int pos) {
         if (mPlayListAdapter.getItemCount() > pos) {
-            mPlayer.removeTrack(0);
             DJApi.get().removeTrackFromParty(mParty.getId(), mPlayListAdapter.getTrackAt(pos).id, new Callback<Void>() {
                 @Override
                 public void success(Void aVoid, Response response) {
                     mPlayListAdapter.removeSingleData(pos);
+                    logError(response.getReason());
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
                     //failed to remove song
+                    logError(error.toString());
                 }
             });
         }
@@ -303,12 +305,50 @@ public class ASessionPresenterImpl implements ASessionPresenter {
         }
     }
 
+    private void getTracksFromUri() {
+        String query = "";
+        for (String id : mParty.getSongList())
+            query += id + ",";
+
+        if (query.length() > 0) query = query.substring(0, query.length() - 1); //removes last comma
+
+        mSpotifyService.getTracks(query, new SpotifyCallback<Tracks>() {
+            @Override
+            public void success(Tracks tracks, Response response) {
+                List<Track> oldList = mPlayListAdapter.getTracks();
+                List<Track> currList = tracks.tracks;
+                List<Track> removeList = new ArrayList<Track>();
+
+
+                //removes old song from the top until both lists are synced
+                for (Track old : oldList) {
+                    if (currList.size() > 0 && !old.equals(currList.get(0))) {
+                        removeList.add(old);
+                    } else break;
+                }
+
+                oldList.removeAll(removeList);
+
+                //adds new songs to end
+                for (Track track : currList) {
+                    if (!oldList.contains(track)) mPlayListAdapter.addSingleData(track);
+                }
+            }
+
+            @Override
+            public void failure(SpotifyError error) {
+                //failed to get stuff
+            }
+        });
+    }
+
     @Override
     public void queueTrack(String url) {
         mSpotifyService.getTrack(url, new Callback<Track>() {
             @Override
             public void success(Track track, Response response) {
                 mPlayer.queueTrack(track);
+                mPlayListAdapter.addSingleData(track);
             }
 
             @Override
@@ -365,48 +405,12 @@ public class ASessionPresenterImpl implements ASessionPresenter {
     }
 
     private void nonHostItemSelect() {
-        toastMessage("Song added to queue");
     }
 
     private void setupPlaylistView() {
         mPlayListAdapter = new SongListAdapter(mSessionActivityMap.getContext(), (itemView, item) -> ASessionPresenterImpl.this.nonHostItemSelect(), true);
         LinearLayoutManager mLayoutManager2 = new LinearLayoutManager(mSessionActivityMap.getContext());
         mSessionActivityMap.setupPlaylistRecyclerView(mPlayListAdapter, mLayoutManager2, null);
-    }
-
-    private void getTracksFromUri() {
-        String query = "";
-        for (String id : mParty.getSongList())
-            query += id + ",";
-
-        if (query.length() > 0) query = query.substring(0, query.length() - 1); //removes last comma
-
-        mSpotifyService.getTracks(query, new SpotifyCallback<Tracks>() {
-            @Override
-            public void success(Tracks tracks, Response response) {
-                List<Track> oldList = mPlayListAdapter.getTracks();
-                List<Track> currList = tracks.tracks;
-                List<Track> removeList = new ArrayList<Track>();
-
-                //removes old song from the top until both lists are synced
-                for (Track old : oldList) {
-                    if (currList.size() > 0 && !old.equals(currList.get(0))) {
-                        removeList.add(old);
-                    } else break;
-                }
-                oldList.removeAll(removeList);
-
-                //adds new songs to end
-                for (Track track : currList) {
-                    if (!oldList.contains(track)) mPlayListAdapter.addSingleData(track);
-                }
-            }
-
-            @Override
-            public void failure(SpotifyError error) {
-                //failed to get stuff
-            }
-        });
     }
 
     private void setupSocketConnection() {
@@ -517,8 +521,6 @@ public class ASessionPresenterImpl implements ASessionPresenter {
             @Override
             public void failure(SpotifyError error) {
                 Log.d(TAG, "No user logged in");
-//                Map<String, List<String>> mSourceCollections = new LinkedHashMap<>();
-//                mSessionActivityMap.setupDrawerLayout(mDrawerItems, mSourceCollections);
             }
 
         });

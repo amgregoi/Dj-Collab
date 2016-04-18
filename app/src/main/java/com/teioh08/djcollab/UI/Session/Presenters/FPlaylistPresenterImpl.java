@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.teioh08.djcollab.Models.Party;
 import com.teioh08.djcollab.UI.Session.Adapters.SongListAdapter;
@@ -26,7 +27,7 @@ import retrofit.client.Response;
 
 
 public class FPlaylistPresenterImpl implements FPlaylistPresenter {
-    final public static String TAG = FSearchTrackPresenterImpl.class.getSimpleName();
+    final public static String TAG = FPlaylistPresenterImpl.class.getSimpleName();
     public static final int PAGE_SIZE = 20;
 
     private FPlaylistMapper mFPlaylistMapper;
@@ -133,17 +134,21 @@ public class FPlaylistPresenterImpl implements FPlaylistPresenter {
 
     @Override //itemclick
     public void selectTrack(Track item) {
+        Toast.makeText(mFPlaylistMapper.getContext(), "Song added to queue", Toast.LENGTH_SHORT).show();
         DJApi.get().addTrackToParty(mParty.getId(), item.id, new retrofit.Callback<Void>() {
             @Override
             public void success(Void aVoid, Response response) {
                 //might do something later
-                logError(response.getReason());
+                logError(response.getUrl());        //remove later
+                logError(response.getReason());     //remove later
+                logMessage(response.getUrl());
+                logMessage(response.getReason());
             }
 
             @Override
             public void failure(RetrofitError error) {
                 //failed to add, or host failed to recieve socket message (bad token)
-                logError(error.getMessage());
+                logError(error.toString());
             }
         });
     }

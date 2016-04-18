@@ -31,7 +31,7 @@ public class FJoinPresenterImpl implements  FJoinPresenter{
 
     @Override
     public void init(Bundle bundle) {
-
+        mFJoinMap.setupToolBar();
     }
 
     @Override

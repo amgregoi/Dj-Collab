@@ -1,37 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@color/black"
-              >
-
-	<include layout="@layout/toolbar2"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/black"
+	>
 
 	<RelativeLayout
-		android:layout_centerVertical="true"
-		android:layout_width="fill_parent"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:background="@drawable/test"
+		android:paddingBottom="8dp"
+		android:paddingEnd="@dimen/half_line_height_32dp"
+		android:paddingStart="@dimen/half_line_height_32dp"
+		android:paddingTop="@dimen/half_line_height_32dp"
+
 		>
 
 		<EditText
 			android:id="@+id/partyName"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
+			android:layout_marginBottom="@dimen/activity_horizontal_margin_16dp"
+			android:background="@drawable/edit_text_test"
+			android:gravity="center"
 			android:hint="Party Name"
+			android:inputType="textAutoCorrect"
+			android:minHeight="@dimen/half_line_height_32dp"
+			android:textColor="@color/white"
+			android:textColorHint="@color/grey"
 			android:textCursorDrawable="@drawable/caret"
-			android:textAlignment="center"
-			android:background="@drawable/test"
-		    android:textColor="@color/white"
-		    android:textColorHint="@color/grey"
 			/>
-
 
 		<Button
-			android:layout_below="@id/partyName"
-			android:id="@+id/createButton"
-			android:layout_width="fill_parent"
+			android:id="@+id/host_button"
+			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Create Session"
-			/>
+			android:layout_alignParentEnd="true"
+			android:layout_below="@id/partyName"
+			android:text="Host"/>
+
+		<Button
+			android:id="@+id/cancel_button"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@id/partyName"
+			android:layout_toLeftOf="@id/host_button"
+			android:text="Cancel"/>
+
 	</RelativeLayout>
+
+
 </RelativeLayout>

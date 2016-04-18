@@ -10,11 +10,13 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.teioh08.djcollab.Models.Party;
 import com.teioh08.djcollab.UI.Session.Adapters.ExpandableListAdapter;
@@ -52,7 +54,7 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
 
     private View mDrawerHeader;
     private ExpandableListAdapter adapter;
-
+    private Toast mToast;
     public static Intent constructSessionActivityIntent(Context context, Party party, boolean isHost) {
         Intent argumentIntent = new Intent(context, ASessionActivity.class);
         argumentIntent.putExtra(PARTY_ARGUMENT_KEY, party);
@@ -65,6 +67,8 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_session);
         ButterKnife.bind(this);
+
+        mToast = Toast.makeText(this, "Press back again to exit party", Toast.LENGTH_SHORT);
 
         mASessionPresenter = new ASessionPresenterImpl(this);
         mASessionPresenter.init(getIntent().getExtras());
@@ -200,4 +204,19 @@ public class ASessionActivity extends AppCompatActivity implements SessionActivi
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+        } else if (!mToast.getView().isShown() && mDrawerLayout.isDrawerOpen(mDrawerList)) { //closes drawer, if exit mToast isn't active
+            mDrawerLayout.closeDrawer(mDrawerList);
+            mToast.show();
+        } else if (!mToast.getView().isShown()) { //opens drawer, and shows exit mToast to verify exit
+            mDrawerLayout.openDrawer(mDrawerList);
+            mToast.show();
+        } else {    //user double back pressed to exit within time frame (mToast length)
+            mToast.cancel();
+            super.onBackPressed();
+        }
+    }
 }

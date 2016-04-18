@@ -1,9 +1,7 @@
 package com.teioh08.djcollab.UI.Main.Presenters;
 
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -20,17 +18,15 @@ public class AMainPresenterImpl implements  AMainPresenter{
     final public static String TAG = AMainPresenterImpl.class.getSimpleName();
 
     private AMainMapper mAMainMap;
-    private Context mAMainContext;
 
 
     public AMainPresenterImpl(AMainMapper map){
         mAMainMap = map;
-        mAMainContext = map.getContext();
     }
 
     @Override
     public void init(Bundle bundle) {
-
+        mAMainMap.setupToolBar();
     }
 
     @Override
@@ -55,7 +51,6 @@ public class AMainPresenterImpl implements  AMainPresenter{
 
     @Override
     public void onDestroy() {
-        mAMainContext = null;
     }
 
     @Override

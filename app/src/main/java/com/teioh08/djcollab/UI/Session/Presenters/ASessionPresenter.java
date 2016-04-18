@@ -8,13 +8,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.teioh08.djcollab.UI.Maps.LifeCycleMapper;
+import com.teioh08.djcollab.UI.Session.DJPlayer;
 import com.teioh08.djcollab.Utils.Player.PlayerInt;
 
 import java.util.List;
 import java.util.Map;
 
 
-public interface ASessionPresenter extends PlayerInt, LifeCycleMapper {
+public interface ASessionPresenter extends PlayerInt, LifeCycleMapper, DJPlayer.PlayerListener {
 
     void setupDrawerLayoutListener(Toolbar mToolBar, DrawerLayout mDrawerLayout);
 

@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,7 @@ public class FSearchTrackFragment extends Fragment implements FSearchTrackMapper
     @Bind(R.id.search_song) RecyclerView mSearchTrackView;
     @Bind(R.id.searchView) SearchView mSearchView;
     @Bind(R.id.activityTitle) TextView mActivityTitle;
+    @Bind(R.id.toolbar) Toolbar mToolbar;
 
     FSearchTrackPresenter mFSearchTrackPresenter;
 
@@ -40,6 +42,14 @@ public class FSearchTrackFragment extends Fragment implements FSearchTrackMapper
 
         mFSearchTrackPresenter = new FSearchTrackPresenterImpl(this);
         mFSearchTrackPresenter.init(getArguments());
+
+        mToolbar.setNavigationIcon(R.drawable.ic_back);
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
         return searchView;
     }
 
